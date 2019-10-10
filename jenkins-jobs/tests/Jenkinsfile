@@ -1,0 +1,67 @@
+#!/usr/bin/env groovy
+
+import hudson.plugins.checkstyle.CheckStyleResultAction
+import hudson.tasks.test.AbstractTestResultAction
+
+library 'android-shared'
+
+properties([buildDiscarder(logRotator(numToKeepStr: '5'))])
+
+try {
+    stage('Test') {
+        onDockerNode {
+            runUnitTests()
+        }
+    }
+
+    setBuildResult('SUCCESS')
+} catch (Exception e) {
+    handleException(e, true)
+} finally {
+    slack.send("$slack.basicResultMessage${getTestStatus()}$slack.pullRequestLinkAndAuthor")
+}
+
+def getTestStatus() {
+    def testStatus = ''
+
+    def checkStyleResultAction = currentBuild.rawBuild.getAction(CheckStyleResultAction.class)
+    def testResultAction = currentBuild.rawBuild.getAction(AbstractTestResultAction.class)
+
+    if (checkStyleResultAction != null || testResultAction != null) {
+        testStatus = '\nTest Status:'
+    }
+
+    if (checkStyleResultAction != null) {
+        def checkStyleResult = checkStyleResultAction.getResult().getSummary().replaceAll('<[^<]*>', '')
+        testStatus += "\n\t<${env.BUILD_URL}checkstyleResult|$checkStyleResult>"
+    }
+
+    if (testResultAction != null) {
+        def total = testResultAction.totalCount
+        def failed = testResultAction.failCount
+        def skipped = testResultAction.skipCount
+        def passed = total - failed - skipped
+
+        def testResult = "Tests: $passed passed, $failed failed$testResultAction.failureDiffString, and $skipped skipped."
+        testStatus += "\n\t<${env.BUILD_URL}testReport|$testResult>"
+    }
+
+    testStatus
+}
+
+def runUnitTests() {
+    timeout(time: 10, unit: 'MINUTES') {
+        dir('Gordon') {
+            checkout scm
+
+            try {
+                sh './gradlew lintKotlin test --continue'
+            } catch (Exception e) {
+                handleException(e, false)
+            } finally {
+                checkstyle canRunOnFailed: true, pattern: '*/build/reports/ktlint/*.xml'
+                junit testResults: '*/build/test-results/*/*.xml'
+            }
+        }
+    }
+}
