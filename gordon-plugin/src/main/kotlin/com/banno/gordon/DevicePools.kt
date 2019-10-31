@@ -1,7 +1,7 @@
 package com.banno.gordon
 
-import arrow.effects.IO
-import arrow.effects.extensions.io.fx.fx
+import arrow.fx.IO
+import arrow.fx.extensions.fx
 import se.vidstige.jadb.JadbConnection
 import se.vidstige.jadb.JadbDevice
 
@@ -12,7 +12,7 @@ internal data class DevicePool(
     val devices: List<JadbDevice>
 )
 
-internal fun calculatePools(adb: JadbConnection, strategy: PoolingStrategy): IO<List<DevicePool>> = fx {
+internal fun calculatePools(adb: JadbConnection, strategy: PoolingStrategy): IO<List<DevicePool>> = IO.fx {
     val allDevices = adb.getAllDevices().bind()
 
     when (strategy) {

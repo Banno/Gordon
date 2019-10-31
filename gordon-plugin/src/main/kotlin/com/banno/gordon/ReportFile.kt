@@ -1,7 +1,7 @@
 package com.banno.gordon
 
-import arrow.effects.IO
-import arrow.effects.extensions.io.fx.fx
+import arrow.fx.IO
+import arrow.fx.extensions.fx
 import java.io.File
 
 internal data class ReportFile(val fileName: String, val fileContent: String)
@@ -13,7 +13,7 @@ internal fun ReportFile.write(directory: File) = IO {
         .absolutePath
 }
 
-internal fun List<ReportFile>.write(directory: File) = fx {
+internal fun List<ReportFile>.write(directory: File) = IO.fx {
     forEach { it.write(directory).bind() }
 }
 

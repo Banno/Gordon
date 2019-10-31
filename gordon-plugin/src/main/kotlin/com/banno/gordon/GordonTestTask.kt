@@ -1,6 +1,7 @@
 package com.banno.gordon
 
-import arrow.effects.extensions.io.fx.fx
+import arrow.fx.IO
+import arrow.fx.extensions.fx
 import kotlinx.coroutines.Dispatchers
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
@@ -64,7 +65,7 @@ internal abstract class GordonTestTask : DefaultTask() {
 
     @TaskAction
     private fun runTests() {
-        val runTests = fx {
+        val runTests = IO.fx {
             testResultsDirectory.get().asFile.clear().bind()
             reportDirectory.get().asFile.clear().bind()
 

@@ -1,6 +1,6 @@
 package com.banno.gordon
 
-import arrow.effects.IO
+import arrow.fx.IO
 import org.jf.dexlib.AnnotationDirectoryItem
 import org.jf.dexlib.AnnotationItem
 import org.jf.dexlib.ClassDefItem

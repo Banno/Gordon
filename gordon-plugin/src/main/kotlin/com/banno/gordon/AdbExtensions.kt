@@ -1,7 +1,7 @@
 package com.banno.gordon
 
-import arrow.effects.IO
-import arrow.effects.extensions.io.fx.fx
+import arrow.fx.IO
+import arrow.fx.extensions.fx
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -43,7 +43,7 @@ internal fun JadbDevice.executeShellWithTimeout(
 internal fun JadbDevice.isTablet(): IO<Boolean> =
     executeShellWithTimeout(20_000, "getprop", "ro.build.characteristics").map { it!!.contains("tablet") }
 
-internal fun JadbDevice.installApk(apk: File, vararg options: String) = fx {
+internal fun JadbDevice.installApk(apk: File, vararg options: String) = IO.fx {
     val remoteFile = RemoteFile("/data/local/tmp/" + apk.name)
 
     push(apk, remoteFile)
