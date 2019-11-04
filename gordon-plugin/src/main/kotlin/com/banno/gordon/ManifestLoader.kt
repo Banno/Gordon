@@ -1,12 +1,12 @@
 package com.banno.gordon
 
-import arrow.effects.IO
-import arrow.effects.extensions.io.fx.fx
+import arrow.fx.IO
+import arrow.fx.extensions.fx
 import com.shazam.axmlparser.AXMLParser
 import java.io.File
 import java.util.zip.ZipFile
 
-internal fun getManifestPackage(apk: File): IO<String> = fx {
+internal fun getManifestPackage(apk: File): IO<String> = IO.fx {
     val manifestPackage: String? = loadFromManifest(apk) {
         moveToTag("manifest")
 

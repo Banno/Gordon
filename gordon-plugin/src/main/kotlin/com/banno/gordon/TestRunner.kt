@@ -37,7 +37,7 @@ internal fun runTest(
                 logger.error("${device.serial}: $testName: UNABLE TO RUN")
                 TestResult.NotRun
             }
-        ) { shellOutput ->
+        ) { shellOutput: String? ->
             val testTime = shellOutput
                 ?.substringAfter("Time: ")
                 ?.substringBefore("\n")

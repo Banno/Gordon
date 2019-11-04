@@ -1,6 +1,6 @@
 package com.banno.gordon
 
-import arrow.effects.IO
+import arrow.fx.IO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
