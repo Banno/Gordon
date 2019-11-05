@@ -1,6 +1,5 @@
 package com.banno.gordon
 
-import com.android.build.VariantOutput
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.ApkVariant
 import org.gradle.api.Plugin
@@ -9,6 +8,7 @@ import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
+import java.io.File
 
 class GordonPlugin : Plugin<Project> {
 
@@ -47,17 +47,22 @@ class GordonPlugin : Plugin<Project> {
 
                 dependsOn(testVariant.assembleProvider, testedVariant.assembleProvider)
 
-                this.instrumentationApk.apply { set(instrumentationApk) }.finalizeValue()
-                this.applicationApk.apply { set(applicationApk) }.finalizeValue()
+                this.instrumentationApk.apply { set(project.layout.file(instrumentationApk)) }.finalizeValue()
+                this.applicationApk.apply { set(project.layout.file(applicationApk)) }.finalizeValue()
                 this.instrumentationRunnerOptions.apply { set(instrumentationRunnerOptions) }.finalizeValue()
             }
         }
     }
 
-    private fun ApkVariant.requireMainApkOutputFile() = outputs
-        .singleOrNull { it.outputType == VariantOutput.MAIN || it.name.startsWith("universal-") }
-        ?.outputFile
-        ?: throw IllegalStateException("Gordon cannot be used without enabling universalApk in your abi splits")
+    private fun ApkVariant.requireMainApkOutputFile() = packageApplicationProvider.map { packageAppTask ->
+        val apkNames = packageAppTask.apkNames
+
+        val apkName = apkNames.singleOrNull()
+            ?: apkNames.singleOrNull { it.contains("universal-") }
+            ?: throw IllegalStateException("Gordon cannot be used without enabling universalApk in your abi splits")
+
+        File(packageAppTask.outputDirectory, apkName)
+    }
 
     object NoTestInstrumentationRunnerException : IllegalStateException(
         "Gordon cannot be used without a testInstrumentationRunner, such as `androidx.test.runner.AndroidJUnitRunner`"
