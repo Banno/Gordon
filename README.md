@@ -81,6 +81,15 @@ gordon {
 }
 ```
 
+##### for groovy buildscripts, add `.INSTANCE` to `PoolingStrategy` because it is a kotlin sealed class
+```groovy
+import com.banno.gordon.PoolingStrategy
+
+gordon {
+    poolingStrategy.set(PoolingStrategy.PhonesAndTablets.INSTANCE)
+}
+```
+
 #### Pooling strategies
 - `EachDevice` - each device is its own pool, so each test will run on each device
 - `AllDevices` - all devices make up one pool, so each test will run only once, on an unspecified device
