@@ -1,42 +1,66 @@
 package com.banno.gordon
 
-import org.xmlpull.v1.XmlPullParserFactory
-import org.xmlpull.v1.XmlSerializer
-import java.io.StringWriter
+internal class XmlElement(
+    private val name: String,
+    private val indentation: Int = 0,
+    private val text: String? = null,
+    private val attributes: MutableMap<String, String> = mutableMapOf(),
+    private val children: MutableList<XmlElement> = mutableListOf()
+) {
 
-internal fun xmlDocument(block: XmlSerializer.() -> Unit) = StringWriter().also {
-    XmlPullParserFactory.newInstance(System.getProperty(XmlPullParserFactory.PROPERTY_NAME), null).newSerializer().run {
-        setOutput(it)
-        indentOutput()
-        startDocument("UTF-8", null)
-        block()
-        endDocument()
+    fun attribute(name: String, value: String) {
+        attributes[name] = value
     }
-}.toString()
 
-private fun XmlSerializer.indentOutput() {
-    try {
-        setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true)
-    } catch (ignored: Throwable) {
-        try {
-            setProperty("http://xmlpull.org/v1/doc/properties.html#serializer-indentation", "  ")
-            setProperty("http://xmlpull.org/v1/doc/properties.html#serializer-line-separator", "\n")
-        } catch (ignored: Throwable) {
+    fun element(name: String, block: XmlElement.() -> Unit = {}) {
+        children.add(XmlElement(name, indentation + 1).apply(block))
+    }
+
+    fun element(name: String, text: String, block: XmlElement.() -> Unit = {}) {
+        children.add(XmlElement(name, indentation + 1, text).apply(block))
+    }
+
+    override fun toString(): String = StringBuilder().run {
+        append(TAB.repeat(indentation))
+        append("<$name")
+        attributes.forEach { append(" ${it.key}=\"${it.value.escape()}\"") }
+        if (text == null && children.isEmpty()) {
+            append("/>")
+        } else {
+            if (text != null) {
+                append(">")
+                append(text.escape())
+            } else {
+                appendln(">")
+                children.forEach { appendln(it.toString()) }
+                append(TAB.repeat(indentation))
+            }
+            append("</$name>")
         }
+        toString()
+    }
+
+    companion object {
+        private const val TAB = "  "
+
+        private fun String.escape() = this
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("&", "&amp;")
+            .replace("'", "&apos;")
+            .replace("\"", "&quot;")
     }
 }
 
-internal fun XmlSerializer.attribute(name: String, value: String) {
-    attribute("", name, value)
+internal fun xmlDocument(
+    rootElementName: String,
+    rootElementText: String?,
+    block: XmlElement.() -> Unit = {}
+): String = StringBuilder().run {
+    appendln("<?xml version='1.0' encoding='UTF-8'?>")
+    appendln(XmlElement(name = rootElementName, text = rootElementText).apply(block).toString())
+    toString()
 }
 
-internal fun XmlSerializer.element(name: String, block: XmlSerializer.() -> Unit = {}) {
-    startTag("", name)
-    block()
-    endTag("", name)
-}
-
-internal fun XmlSerializer.element(name: String, text: String, block: XmlSerializer.() -> Unit = {}) = element(name) {
-    block()
-    text(text)
-}
+internal fun xmlDocument(rootElementName: String, block: XmlElement.() -> Unit = {}) =
+    xmlDocument(rootElementName, null, block)

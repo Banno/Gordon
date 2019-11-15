@@ -61,8 +61,8 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.summary(): String {
 internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
     flatMap { (poolName, results) ->
         results.map { (testCase, result) ->
-            val fileContent = xmlDocument {
-                element("testsuite") {
+            val fileContent =
+                xmlDocument("testsuite") {
                     attribute("name", poolName)
                     attribute("tests", "1")
                     attribute("skipped", if (result == TestResult.Ignored) "1" else "0")
@@ -87,7 +87,6 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
                         }
                     }
                 }
-            }
 
             ReportFile(
                 "$poolName-${testCase.fullyQualifiedClassName}.${testCase.methodName}.xml",
