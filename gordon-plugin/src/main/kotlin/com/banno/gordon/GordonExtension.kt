@@ -13,11 +13,13 @@ abstract class GordonExtension @Inject constructor(
     val retryQuota: Property<Int> = objects.property()
     val testTimeoutMillis: Property<Long> = objects.property()
     val testFilter: Property<String> = objects.property()
+    val testInstrumentationRunner: Property<String> = objects.property()
 
     init {
         poolingStrategy.convention(PoolingStrategy.EachDevice)
         retryQuota.convention(0)
         testTimeoutMillis.convention(120_000)
         testFilter.convention("")
+        testInstrumentationRunner.convention("")
     }
 }
