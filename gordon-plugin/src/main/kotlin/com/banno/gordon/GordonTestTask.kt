@@ -33,7 +33,14 @@ internal abstract class GordonTestTask : DefaultTask() {
     internal val applicationApk: RegularFileProperty = project.objects.fileProperty()
 
     @get:Input
-    internal val instrumentationRunnerOptions: Property<InstrumentationRunnerOptions> = project.objects.property()
+    internal val instrumentationRunnerOptions: InstrumentationRunnerOptions
+        get() {
+            val options = androidInstrumentationRunnerOptions.get()
+            val extensionRunner = extensionTestInstrumentationRunner.get()
+
+            return if (extensionRunner.isNotBlank()) options.copy(testInstrumentationRunner = extensionRunner)
+            else options
+        }
 
     @get:Input
     internal val testFilters: List<String>
@@ -52,6 +59,12 @@ internal abstract class GordonTestTask : DefaultTask() {
     val commandlineTestFilter: Property<String> = project.objects.property()
 
     private val extensionTestFilter = project.extensions.getByType<GordonExtension>().testFilter
+
+    internal val androidInstrumentationRunnerOptions: Property<InstrumentationRunnerOptions> =
+        project.objects.property()
+
+    private val extensionTestInstrumentationRunner =
+        project.extensions.getByType<GordonExtension>().testInstrumentationRunner
 
     @OutputDirectory
     val testResultsDirectory: Provider<Directory> = project.layout.buildDirectory.dir("test-results/$name")
@@ -96,7 +109,7 @@ internal abstract class GordonTestTask : DefaultTask() {
                 dispatcher = Dispatchers.Default,
                 logger = logger,
                 instrumentationPackage = instrumentationPackage,
-                instrumentationRunnerOptions = instrumentationRunnerOptions.get(),
+                instrumentationRunnerOptions = instrumentationRunnerOptions,
                 allTestCases = testCases,
                 allPools = pools,
                 retryQuota = retryQuota.get(),

@@ -40,7 +40,7 @@ class GordonPlugin : Plugin<Project> {
 
                 val instrumentationRunnerOptions = InstrumentationRunnerOptions(
                     testInstrumentationRunner = testedVariant.mergedFlavor.testInstrumentationRunner
-                        ?: throw NoTestInstrumentationRunnerException,
+                        ?: "android.test.InstrumentationTestRunner",
                     testInstrumentationRunnerArguments = testedVariant.mergedFlavor.testInstrumentationRunnerArguments,
                     animationsDisabled = androidExtension.testOptions.animationsDisabled
                 )
@@ -49,7 +49,7 @@ class GordonPlugin : Plugin<Project> {
 
                 this.instrumentationApk.apply { set(project.layout.file(instrumentationApk)) }.finalizeValue()
                 this.applicationApk.apply { set(project.layout.file(applicationApk)) }.finalizeValue()
-                this.instrumentationRunnerOptions.apply { set(instrumentationRunnerOptions) }.finalizeValue()
+                this.androidInstrumentationRunnerOptions.apply { set(instrumentationRunnerOptions) }.finalizeValue()
             }
         }
     }
@@ -63,8 +63,4 @@ class GordonPlugin : Plugin<Project> {
 
         File(packageAppTask.outputDirectory, apkName)
     }
-
-    object NoTestInstrumentationRunnerException : IllegalStateException(
-        "Gordon cannot be used without a testInstrumentationRunner, such as `androidx.test.runner.AndroidJUnitRunner`"
-    )
 }
