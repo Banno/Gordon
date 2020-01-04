@@ -84,21 +84,26 @@ internal fun List<JadbDevice>.uninstall(
 }
 
 internal fun List<JadbDevice>.reinstall(
+    dispatcher: CoroutineDispatcher,
     logger: Logger,
     applicationPackage: String,
     instrumentationPackage: String,
     applicationApk: File,
     instrumentationApk: File
 ) = IO {
-    forEach { device ->
-        val packageManager = PackageManager(device)
-        logger.lifecycle("${device.serial}: installing $applicationPackage")
-        packageManager.safeUninstall(applicationPackage)
-        device.installApk(applicationApk, "-d", "-r").unsafeRunSync()
-        if (instrumentationApk != applicationApk) {
-            logger.lifecycle("${device.serial}: installing $instrumentationPackage")
-            packageManager.safeUninstall(instrumentationPackage)
-            device.installApk(instrumentationApk, "-d", "-r", "-t").unsafeRunSync()
-        }
+    runBlocking {
+        map { device ->
+            async(context = dispatcher, start = CoroutineStart.LAZY) {
+                val packageManager = PackageManager(device)
+                logger.lifecycle("${device.serial}: installing $applicationPackage")
+                packageManager.safeUninstall(applicationPackage)
+                device.installApk(applicationApk, "-d", "-r").unsafeRunSync()
+                if (instrumentationApk != applicationApk) {
+                    logger.lifecycle("${device.serial}: installing $instrumentationPackage")
+                    packageManager.safeUninstall(instrumentationPackage)
+                    device.installApk(instrumentationApk, "-d", "-r", "-t").unsafeRunSync()
+                }
+            }
+        }.awaitAll()
     }
 }

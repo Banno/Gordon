@@ -98,6 +98,7 @@ internal abstract class GordonTestTask : DefaultTask() {
             }
 
             pools.flatMap { it.devices }.reinstall(
+                dispatcher = Dispatchers.Default,
                 logger = logger,
                 applicationPackage = applicationPackage,
                 instrumentationPackage = instrumentationPackage,
