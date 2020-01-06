@@ -15,8 +15,8 @@ repositories {
 
 dependencies {
     implementation(gradleKotlinDsl())
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.13.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0")
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.6.12")
 
     val androidGradlePluginVersion: String by project
@@ -26,8 +26,8 @@ dependencies {
     implementation("org.smali:dexlib:1.4.2")
     implementation("com.shazam:axmlparser:1.0")
 
-    implementation("io.arrow-kt:arrow-core-data:0.10.2")
-    implementation("io.arrow-kt:arrow-fx:0.10.2")
+    implementation("io.arrow-kt:arrow-core-data:0.10.4")
+    implementation("io.arrow-kt:arrow-fx:0.10.4")
 
     testImplementation("junit:junit:4.12")
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
