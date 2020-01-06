@@ -53,6 +53,7 @@ internal abstract class GordonTestTask : DefaultTask() {
     internal val poolingStrategy = project.extensions.getByType<GordonExtension>().poolingStrategy
 
     private val retryQuota = project.extensions.getByType<GordonExtension>().retryQuota
+    private val installTimeoutMillis = project.extensions.getByType<GordonExtension>().installTimeoutMillis
     private val testTimeoutMillis = project.extensions.getByType<GordonExtension>().testTimeoutMillis
 
     @Option(option = "tests", description = "Comma-separated packages, classes, or methods.")
@@ -98,11 +99,13 @@ internal abstract class GordonTestTask : DefaultTask() {
             }
 
             pools.flatMap { it.devices }.reinstall(
+                dispatcher = Dispatchers.Default,
                 logger = logger,
                 applicationPackage = applicationPackage,
                 instrumentationPackage = instrumentationPackage,
                 applicationApk = applicationApk.get().asFile,
-                instrumentationApk = instrumentationApk.get().asFile
+                instrumentationApk = instrumentationApk.get().asFile,
+                installTimeoutMillis = installTimeoutMillis.get()
             ).bind()
 
             val testResults = runAllTests(

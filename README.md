@@ -74,6 +74,9 @@ gordon {
     retryQuota.set(2)
 
     // Default is 120_000 (2 minutes)
+    installTimeoutMillis.set(180_000)
+
+    // Default is 120_000 (2 minutes)
     testTimeoutMillis.set(60_000)
 
     // Default is no filter

@@ -43,12 +43,12 @@ internal fun JadbDevice.executeShellWithTimeout(
 internal fun JadbDevice.isTablet(): IO<Boolean> =
     executeShellWithTimeout(20_000, "getprop", "ro.build.characteristics").map { it!!.contains("tablet") }
 
-internal fun JadbDevice.installApk(apk: File, vararg options: String) = IO.fx {
+internal fun JadbDevice.installApk(timeoutMillis: Long, apk: File, vararg options: String) = IO.fx {
     val remoteFile = RemoteFile("/data/local/tmp/" + apk.name)
 
     push(apk, remoteFile)
 
-    val result = executeShellWithTimeout(120_000, "pm", "install", *options, remoteFile.path).bind()
+    val result = executeShellWithTimeout(timeoutMillis, "pm", "install", *options, remoteFile.path).bind()
 
     PackageManager(this@installApk).remove(remoteFile)
 
@@ -84,21 +84,27 @@ internal fun List<JadbDevice>.uninstall(
 }
 
 internal fun List<JadbDevice>.reinstall(
+    dispatcher: CoroutineDispatcher,
     logger: Logger,
     applicationPackage: String,
     instrumentationPackage: String,
     applicationApk: File,
-    instrumentationApk: File
+    instrumentationApk: File,
+    installTimeoutMillis: Long
 ) = IO {
-    forEach { device ->
-        val packageManager = PackageManager(device)
-        logger.lifecycle("${device.serial}: installing $applicationPackage")
-        packageManager.safeUninstall(applicationPackage)
-        device.installApk(applicationApk, "-d", "-r").unsafeRunSync()
-        if (instrumentationApk != applicationApk) {
-            logger.lifecycle("${device.serial}: installing $instrumentationPackage")
-            packageManager.safeUninstall(instrumentationPackage)
-            device.installApk(instrumentationApk, "-d", "-r", "-t").unsafeRunSync()
-        }
+    runBlocking {
+        map { device ->
+            async(context = dispatcher, start = CoroutineStart.LAZY) {
+                val packageManager = PackageManager(device)
+                logger.lifecycle("${device.serial}: installing $applicationPackage")
+                packageManager.safeUninstall(applicationPackage)
+                device.installApk(installTimeoutMillis, applicationApk, "-d", "-r").unsafeRunSync()
+                if (instrumentationApk != applicationApk) {
+                    logger.lifecycle("${device.serial}: installing $instrumentationPackage")
+                    packageManager.safeUninstall(instrumentationPackage)
+                    device.installApk(installTimeoutMillis, instrumentationApk, "-d", "-r", "-t").unsafeRunSync()
+                }
+            }
+        }.awaitAll()
     }
 }
