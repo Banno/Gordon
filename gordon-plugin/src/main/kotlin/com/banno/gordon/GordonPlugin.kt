@@ -61,6 +61,6 @@ class GordonPlugin : Plugin<Project> {
             ?: apkNames.singleOrNull { it.contains("universal-") }
             ?: throw IllegalStateException("Gordon cannot be used without enabling universalApk in your abi splits")
 
-        File(packageAppTask.outputDirectory, apkName)
+        File(packageAppTask.outputDirectory.asFile.get(), apkName)
     }
 }
