@@ -8,7 +8,6 @@ import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
-import java.io.File
 
 class GordonPlugin : Plugin<Project> {
 
@@ -47,20 +46,20 @@ class GordonPlugin : Plugin<Project> {
 
                 dependsOn(testVariant.assembleProvider, testedVariant.assembleProvider)
 
-                this.instrumentationApk.apply { set(project.layout.file(instrumentationApk)) }.finalizeValue()
-                this.applicationApk.apply { set(project.layout.file(applicationApk)) }.finalizeValue()
+                this.instrumentationApk.apply { set(instrumentationApk) }.finalizeValue()
+                this.applicationApk.apply { set(applicationApk) }.finalizeValue()
                 this.androidInstrumentationRunnerOptions.apply { set(instrumentationRunnerOptions) }.finalizeValue()
             }
         }
     }
 
-    private fun ApkVariant.requireMainApkOutputFile() = packageApplicationProvider.map { packageAppTask ->
+    private fun ApkVariant.requireMainApkOutputFile() = packageApplicationProvider.flatMap { packageAppTask ->
         val apkNames = packageAppTask.apkNames
 
         val apkName = apkNames.singleOrNull()
             ?: apkNames.singleOrNull { it.contains("universal-") }
             ?: throw IllegalStateException("Gordon cannot be used without enabling universalApk in your abi splits")
 
-        File(packageAppTask.outputDirectory, apkName)
+        packageAppTask.outputDirectory.file(apkName)
     }
 }
