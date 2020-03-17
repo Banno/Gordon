@@ -1,10 +1,10 @@
 include("gordon-plugin", "app")
 
-val androidGradlePluginVersion: String by settings
-val kotlinVersion: String by settings
-val kotlinterVersion: String by settings
-
 pluginManagement {
+    val androidGradlePluginVersion: String by settings
+    val kotlinVersion: String by settings
+    val kotlinterVersion: String by settings
+
     repositories {
         gradlePluginPortal()
         google()
