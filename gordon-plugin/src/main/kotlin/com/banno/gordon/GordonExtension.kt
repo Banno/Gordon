@@ -17,7 +17,7 @@ abstract class GordonExtension @Inject constructor(
     val testInstrumentationRunner: Property<String> = objects.property()
 
     init {
-        poolingStrategy.convention(PoolingStrategy.EachDevice)
+        poolingStrategy.convention(PoolingStrategy.PoolPerDevice)
         retryQuota.convention(0)
         installTimeoutMillis.convention(120_000)
         testTimeoutMillis.convention(120_000)

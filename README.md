@@ -67,8 +67,17 @@ apply plugin: "com.banno.gordon"
 import com.banno.gordon.PoolingStrategy
 
 gordon {
-    // Default is PoolingStrategy.EachDevice
+    // Default is PoolingStrategy.PoolPerDevice
     poolingStrategy.set(PoolingStrategy.PhonesAndTablets)
+    //or
+    poolingStrategy.set(
+        PoolingStrategy.Manual(
+            mapOf(
+                "poolOne" to setOf("deviceSerial1", "deviceSerial2"),
+                "poolTwo" to setOf("deviceSerial3", "deviceSerial4")
+            )
+        )
+    )
 
     // Default is 0
     retryQuota.set(2)
@@ -84,20 +93,29 @@ gordon {
 }
 ```
 
-##### for groovy buildscripts, add `.INSTANCE` to `PoolingStrategy` because it is a kotlin sealed class
+##### Groovy build.gradle example for `PoolingStrategy`
 ```groovy
 import com.banno.gordon.PoolingStrategy
 
 gordon {
     poolingStrategy.set(PoolingStrategy.PhonesAndTablets.INSTANCE)
+    //or
+    poolingStrategy.set(
+            new PoolingStrategy.Manual(
+                    [
+                            "poolOne": ["deviceSerial1", "deviceSerial2"].toSet(),
+                            "poolTwo": ["deviceSerial3", "deviceSerial4"].toSet()
+                    ]
+            )
+    )
 }
 ```
 
 #### Pooling strategies
-- `EachDevice` - each device is its own pool, so each test will run on each device
-- `AllDevices` - all devices make up one pool, so each test will run only once, on an unspecified device
+- `PoolPerDevice` - each device is its own pool, so each test will run on each device
+- `SinglePool` - all devices make up one pool, so each test will run only once, on an unspecified device
 - `PhonesAndTablets` - devices are split into pools based on type, so each test will run on one phone and one tablet
-- `SpecificDevices` - each specified device is its own pool, so each test will run on each specified device
+- `Manual` - create your own pools with specific devices - each test will run on one device from each pool
 
 ## Running
 
