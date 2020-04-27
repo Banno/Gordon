@@ -54,6 +54,11 @@ internal fun runTest(
                     TestResult.Passed(testTime)
                 }
 
+                shellOutput.endsWith("OK (0 tests)") -> {
+                    logger.lifecycle("${device.serial}: $testName: IGNORED")
+                    TestResult.Ignored
+                }
+
                 else -> {
                     val failureOutput = shellOutput.substringBeforeLast("There was 1 failure")
                     logger.error("${device.serial}: $testName: FAILED\n$failureOutput\n")
