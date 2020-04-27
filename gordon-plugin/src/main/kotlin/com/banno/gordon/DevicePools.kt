@@ -16,9 +16,11 @@ internal fun calculatePools(adb: JadbConnection, strategy: PoolingStrategy): IO<
     val allDevices = adb.getAllDevices().bind()
 
     when (strategy) {
-        PoolingStrategy.EachDevice -> allDevices.map { DevicePool(it.serial, listOf(it)) }
+        PoolingStrategy.EachDevice,
+        PoolingStrategy.PoolPerDevice -> allDevices.map { DevicePool(it.serial, listOf(it)) }
 
-        PoolingStrategy.AllDevices -> listOf(DevicePool("All-Devices", allDevices))
+        PoolingStrategy.AllDevices,
+        PoolingStrategy.SinglePool -> listOf(DevicePool("All-Devices", allDevices))
 
         PoolingStrategy.PhonesAndTablets -> {
             val deviceAndIsTablet = allDevices.map { it to it.isTablet().bind() }
@@ -27,6 +29,10 @@ internal fun calculatePools(adb: JadbConnection, strategy: PoolingStrategy): IO<
                 DevicePool("Tablets", deviceAndIsTablet.filter { it.second }.map { it.first }),
                 DevicePool("Phones", deviceAndIsTablet.filter { !it.second }.map { it.first })
             )
+        }
+
+        is PoolingStrategy.Manual -> strategy.poolNameToDeviceSerials.map { (poolName, deviceSerials) ->
+            DevicePool(poolName, deviceSerials.mapNotNull { serial -> allDevices.find { it.serial == serial } })
         }
 
         is PoolingStrategy.SpecificDevices -> strategy.deviceSerials
