@@ -1,9 +1,5 @@
 package com.banno.gordon
 
-import com.banno.gordon.PoolingStrategy.AllDevices
-import com.banno.gordon.PoolingStrategy.EachDevice
-import com.banno.gordon.PoolingStrategy.PhonesAndTablets
-import com.banno.gordon.PoolingStrategy.SpecificDevices
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.anyVararg
 import com.nhaarman.mockitokotlin2.doReturn
@@ -17,7 +13,7 @@ import java.util.UUID
 class CalculatePoolsTest {
 
     @Test
-    fun allDevicesIsOnePoolOfAllDevices() {
+    fun poolPerDeviceStrategy() {
         val devices = listOf(
             anyJadbDevice(),
             anyJadbDevice(),
@@ -28,68 +24,30 @@ class CalculatePoolsTest {
             on { this.devices } doReturn devices
         }
 
-        val actual = calculatePools(jadbConnection, AllDevices).unsafeRunSync()
-
-        actual shouldEqual listOf(DevicePool("All-Devices", devices))
-    }
-
-    @Test
-    fun eachDeviceIsItsOwnPool() {
-        val devices = listOf(
-            anyJadbDevice(),
-            anyJadbDevice(),
-            anyJadbDevice()
-        )
-
-        val jadbConnection: JadbConnection = mock {
-            on { this.devices } doReturn devices
-        }
-
-        val actual = calculatePools(jadbConnection, EachDevice).unsafeRunSync()
+        val actual = calculatePools(jadbConnection, PoolingStrategy.PoolPerDevice).unsafeRunSync()
 
         actual shouldEqual devices.map { DevicePool(it.serial, listOf(it)) }
     }
 
     @Test
-    fun specificDevicesFiltersOutDevices() {
-        val firstDevice = anyJadbDevice(serial = "First")
-        val secondDevice = anyJadbDevice(serial = "Second")
-        val thirdDevice = anyJadbDevice(serial = "Third")
+    fun singlePoolStrategy() {
+        val devices = listOf(
+            anyJadbDevice(),
+            anyJadbDevice(),
+            anyJadbDevice()
+        )
 
         val jadbConnection: JadbConnection = mock {
-            on { this.devices } doReturn listOf(
-                firstDevice,
-                secondDevice,
-                thirdDevice
-            )
+            on { this.devices } doReturn devices
         }
 
-        val actual = calculatePools(jadbConnection, SpecificDevices(listOf("First", "Third"))).unsafeRunSync()
+        val actual = calculatePools(jadbConnection, PoolingStrategy.SinglePool).unsafeRunSync()
 
-        actual shouldEqual listOf(
-            DevicePool("First", listOf(firstDevice)),
-            DevicePool("Third", listOf(thirdDevice))
-        )
+        actual shouldEqual listOf(DevicePool("All-Devices", devices))
     }
 
     @Test
-    fun specificDevicesHasEmptyPoolIfDeviceIsNotFound() {
-        val firstDevice = anyJadbDevice(serial = "First")
-
-        val jadbConnection: JadbConnection = mock {
-            on { this.devices } doReturn listOf(firstDevice)
-        }
-
-        val actual = calculatePools(jadbConnection, SpecificDevices(listOf("First", "Third"))).unsafeRunSync()
-
-        actual shouldEqual listOf(
-            DevicePool("First", listOf(firstDevice)),
-            DevicePool("Third", emptyList())
-        )
-    }
-
-    @Test
-    fun phonesAndTabletsShouldBeGroupedAsSuch() {
+    fun phonesAndTabletsStrategy() {
         val tablets = listOf(
             anyJadbDevice(isTablet = true),
             anyJadbDevice(isTablet = true)
@@ -104,11 +62,45 @@ class CalculatePoolsTest {
             on { this.devices } doReturn tablets + phones
         }
 
-        val actual = calculatePools(jadbConnection, PhonesAndTablets).unsafeRunSync()
+        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets).unsafeRunSync()
 
         actual shouldEqual listOf(
             DevicePool("Tablets", tablets),
             DevicePool("Phones", phones)
+        )
+    }
+
+    @Test
+    fun manualStrategy() {
+        val firstDevice = anyJadbDevice(serial = "First")
+        val secondDevice = anyJadbDevice(serial = "Second")
+        val thirdDevice = anyJadbDevice(serial = "Third")
+        val fourthDevice = anyJadbDevice(serial = "Fourth")
+        val fifthDevice = anyJadbDevice(serial = "Fifth")
+
+        val jadbConnection: JadbConnection = mock {
+            on { this.devices } doReturn listOf(
+                firstDevice,
+                secondDevice,
+                thirdDevice,
+                fourthDevice,
+                fifthDevice
+            )
+        }
+
+        val actual = calculatePools(
+            jadbConnection,
+            PoolingStrategy.Manual(
+                mapOf(
+                    "Pool1" to setOf("First", "Fourth", "Nonsense"),
+                    "Pool2" to setOf("Second", "Fifth")
+                )
+            )
+        ).unsafeRunSync()
+
+        actual shouldEqual listOf(
+            DevicePool("Pool1", listOf(firstDevice, fourthDevice)),
+            DevicePool("Pool2", listOf(secondDevice, fifthDevice))
         )
     }
 
