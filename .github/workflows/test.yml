@@ -1,0 +1,34 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+
+    - uses: actions/checkout@v2
+
+    - uses: actions/cache@v1
+      with:
+        path: ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle*.properties') }}
+
+    - uses: actions/cache@v1
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle*.properties') }}
+
+    - name: Test
+      run: |
+        ./gradlew lintKotlin test --continue
