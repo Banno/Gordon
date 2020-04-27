@@ -117,6 +117,25 @@ gordon {
 - `PhonesAndTablets` - devices are split into pools based on type, so each test will run on one phone and one tablet
 - `Manual` - create your own pools with specific devices - each test will run on one device from each pool
 
+### Compatibility with Android extension
+Gordon is compatible with most testing options that can be configured in the Android extension, including `size`/`annotation`/`notAnnotation` arguments and disabling animations for tests.
+
+#### Example build.gradle.kts
+```kotlin
+android {
+    defaultConfig {
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        testInstrumentationRunnerArgument("size", "medium")
+        testInstrumentationRunnerArgument("notAnnotation", "androidx.test.filters.FlakyTest")
+
+        testOptions.animationsDisabled = true
+    }
+}
+```
+
+In this example, the AndroidX `AndroidJUnitRunner` will be used, animations will be disabled, and the only tests run will be those annotated with `@MediumTest`, but not `@FlakyTest`.
+
 ## Running
 
 #### Tasks
