@@ -10,6 +10,7 @@ abstract class GordonExtension @Inject constructor(
 ) {
 
     val poolingStrategy: Property<PoolingStrategy> = objects.property()
+    val tabletShortestWidthDp: Property<Int> = objects.property()
     val retryQuota: Property<Int> = objects.property()
     val installTimeoutMillis: Property<Long> = objects.property()
     val testTimeoutMillis: Property<Long> = objects.property()
@@ -18,6 +19,7 @@ abstract class GordonExtension @Inject constructor(
 
     init {
         poolingStrategy.convention(PoolingStrategy.PoolPerDevice)
+        tabletShortestWidthDp.convention(-1)
         retryQuota.convention(0)
         installTimeoutMillis.convention(120_000)
         testTimeoutMillis.convention(120_000)

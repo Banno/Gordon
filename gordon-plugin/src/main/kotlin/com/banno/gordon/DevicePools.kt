@@ -12,7 +12,11 @@ internal data class DevicePool(
     val devices: List<JadbDevice>
 )
 
-internal fun calculatePools(adb: JadbConnection, strategy: PoolingStrategy): IO<List<DevicePool>> = IO.fx {
+internal fun calculatePools(
+    adb: JadbConnection,
+    strategy: PoolingStrategy,
+    tabletShortestWidthDp: Int?
+): IO<List<DevicePool>> = IO.fx {
     val allDevices = adb.getAllDevices().bind()
 
     when (strategy) {
@@ -21,7 +25,7 @@ internal fun calculatePools(adb: JadbConnection, strategy: PoolingStrategy): IO<
         PoolingStrategy.SinglePool -> listOf(DevicePool("All-Devices", allDevices))
 
         PoolingStrategy.PhonesAndTablets -> {
-            val deviceAndIsTablet = allDevices.map { it to it.isTablet().bind() }
+            val deviceAndIsTablet = allDevices.map { it to it.isTablet(tabletShortestWidthDp).bind() }
 
             listOf(
                 DevicePool("Tablets", deviceAndIsTablet.filter { it.second }.map { it.first }),

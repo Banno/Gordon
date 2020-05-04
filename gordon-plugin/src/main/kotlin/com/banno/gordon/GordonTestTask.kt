@@ -52,6 +52,9 @@ internal abstract class GordonTestTask : DefaultTask() {
     @get:Input
     internal val poolingStrategy = project.extensions.getByType<GordonExtension>().poolingStrategy
 
+    @get:Input
+    internal val tabletShortestWidthDp = project.extensions.getByType<GordonExtension>().tabletShortestWidthDp
+
     private val retryQuota = project.extensions.getByType<GordonExtension>().retryQuota
     private val installTimeoutMillis = project.extensions.getByType<GordonExtension>().installTimeoutMillis
     private val testTimeoutMillis = project.extensions.getByType<GordonExtension>().testTimeoutMillis
@@ -85,7 +88,11 @@ internal abstract class GordonTestTask : DefaultTask() {
 
             val applicationPackage = getManifestPackage(applicationApk.get().asFile).bind()
             val instrumentationPackage = getManifestPackage(instrumentationApk.get().asFile).bind()
-            val pools = calculatePools(JadbConnection(), poolingStrategy.get()).bind()
+            val pools = calculatePools(
+                JadbConnection(),
+                poolingStrategy.get(),
+                tabletShortestWidthDp.get().takeIf { it > -1 }
+            ).bind()
             val testCases = loadTestSuite(instrumentationApk.get().asFile).bind()
                 .filter { it.matchesFilter(testFilters) }
 

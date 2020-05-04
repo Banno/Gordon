@@ -79,6 +79,9 @@ gordon {
         )
     )
 
+    // Default is unset (`-1`) - to use "tablet" characteristic instead of size
+    tabletShortestWidthDp(720)
+
     // Default is 0
     retryQuota.set(2)
 
@@ -115,6 +118,8 @@ gordon {
 - `PoolPerDevice` - each device is its own pool, so each test will run on each device
 - `SinglePool` - all devices make up one pool, so each test will run only once, on an unspecified device
 - `PhonesAndTablets` - devices are split into pools based on type, so each test will run on one phone and one tablet
+  - If the `tabletShortestWidthDp` property is set, devices with at least that dimension will be considered "tablets"
+  - If `tabletShortestWidthDp` is not set, devices with `tablet` in their `ro.build.characteristics` build property will be considered "tablets"
 - `Manual` - create your own pools with specific devices - each test will run on one device from each pool
 
 ### Compatibility with Android extension
