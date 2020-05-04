@@ -1,7 +1,5 @@
 package com.banno.gordon
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.anyVararg
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import org.junit.Test
@@ -24,7 +22,7 @@ class CalculatePoolsTest {
             on { this.devices } doReturn devices
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PoolPerDevice).unsafeRunSync()
+        val actual = calculatePools(jadbConnection, PoolingStrategy.PoolPerDevice, null).unsafeRunSync()
 
         actual shouldEqual devices.map { DevicePool(it.serial, listOf(it)) }
     }
@@ -41,7 +39,7 @@ class CalculatePoolsTest {
             on { this.devices } doReturn devices
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.SinglePool).unsafeRunSync()
+        val actual = calculatePools(jadbConnection, PoolingStrategy.SinglePool, null).unsafeRunSync()
 
         actual shouldEqual listOf(DevicePool("All-Devices", devices))
     }
@@ -62,7 +60,33 @@ class CalculatePoolsTest {
             on { this.devices } doReturn tablets + phones
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets).unsafeRunSync()
+        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, null).unsafeRunSync()
+
+        actual shouldEqual listOf(
+            DevicePool("Tablets", tablets),
+            DevicePool("Phones", phones)
+        )
+    }
+
+    @Test
+    fun phonesAndTabletsStrategyWithShortestWidth() {
+        val shortestWidthDp = 720
+
+        val tablets = listOf(
+            anyJadbDevice(tabletShortestWidthDp = shortestWidthDp),
+            anyJadbDevice(tabletShortestWidthDp = shortestWidthDp + 200)
+        )
+
+        val phones = listOf(
+            anyJadbDevice(tabletShortestWidthDp = shortestWidthDp - 1),
+            anyJadbDevice(tabletShortestWidthDp = shortestWidthDp - 200)
+        )
+
+        val jadbConnection: JadbConnection = mock {
+            on { this.devices } doReturn tablets + phones
+        }
+
+        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, shortestWidthDp).unsafeRunSync()
 
         actual shouldEqual listOf(
             DevicePool("Tablets", tablets),
@@ -95,7 +119,8 @@ class CalculatePoolsTest {
                     "Pool1" to setOf("First", "Fourth", "Nonsense"),
                     "Pool2" to setOf("Second", "Fifth")
                 )
-            )
+            ),
+            null
         ).unsafeRunSync()
 
         actual shouldEqual listOf(
@@ -106,16 +131,19 @@ class CalculatePoolsTest {
 
     private fun anyJadbDevice(
         serial: String = UUID.randomUUID().toString(),
-        isTablet: Boolean = false
+        isTablet: Boolean = false,
+        tabletShortestWidthDp: Int? = null
     ): JadbDevice {
         return mock {
             on { this.serial } doReturn serial
-            on { this.executeShell(any<String>(), anyVararg()) } doReturn ByteArrayInputStream(
-                if (isTablet) {
-                    "tablet".toByteArray()
-                } else {
-                    "phone".toByteArray()
-                }
+            on { this.executeShell("getprop", "ro.build.characteristics") } doReturn ByteArrayInputStream(
+                (if (isTablet) "tablet" else "phone").toByteArray()
+            )
+            on { this.executeShell("wm", "size") } doReturn ByteArrayInputStream(
+                "Physical size: ${tabletShortestWidthDp}x$tabletShortestWidthDp".toByteArray()
+            )
+            on { this.executeShell("wm", "density") } doReturn ByteArrayInputStream(
+                "Physical density: 160".toByteArray()
             )
         }
     }

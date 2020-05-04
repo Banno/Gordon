@@ -17,6 +17,7 @@ import se.vidstige.jadb.RemoteFile
 import se.vidstige.jadb.managers.Package
 import se.vidstige.jadb.managers.PackageManager
 import java.io.File
+import kotlin.math.min
 
 internal fun JadbConnection.getAllDevices(): IO<List<JadbDevice>> = IO {
     devices.toList()
@@ -40,8 +41,24 @@ internal fun JadbDevice.executeShellWithTimeout(
     }
 }
 
-internal fun JadbDevice.isTablet(): IO<Boolean> =
-    executeShellWithTimeout(20_000, "getprop", "ro.build.characteristics").map { it!!.contains("tablet") }
+internal fun JadbDevice.isTablet(tabletShortestWidthDp: Int?): IO<Boolean> = when (tabletShortestWidthDp) {
+    null -> executeShellWithTimeout(20_000, "getprop", "ro.build.characteristics").map { it!!.contains("tablet") }
+    else -> executeShellWithTimeout(20_000, "wm", "size")
+        .flatMap { sizeString ->
+            executeShellWithTimeout(20_000, "wm", "density").map { sizeString!! to it!! }
+        }
+        .map { (sizeString, densityString) ->
+            val shortestWidthPixels = min(
+                sizeString.substringAfterLast("size:").substringBefore('x').trim().toInt(),
+                sizeString.substringAfterLast('x').trim().toInt()
+            )
+            val density = densityString.substringAfterLast("density:").trim().toInt()
+
+            val shortestWidthDp = shortestWidthPixels * 160 / density
+
+            shortestWidthDp >= tabletShortestWidthDp
+        }
+}
 
 internal fun JadbDevice.installApk(timeoutMillis: Long, apk: File, vararg options: String) = IO.fx {
     val remoteFile = RemoteFile("/data/local/tmp/" + apk.name)
