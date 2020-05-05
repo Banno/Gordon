@@ -23,7 +23,7 @@ dependencies {
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
 
     implementation("com.github.vidstige:jadb:v1.1.0")
-    implementation("org.smali:dexlib:1.4.2")
+    implementation("org.smali:dexlib2:2.4.0")
     implementation("com.shazam:axmlparser:1.0")
 
     implementation("io.arrow-kt:arrow-core-data:0.10.4")
