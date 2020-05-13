@@ -9,7 +9,8 @@ internal fun runTest(
     instrumentationRunnerOptions: InstrumentationRunnerOptions,
     testTimeoutMillis: Long,
     test: TestCase,
-    device: JadbDevice
+    device: JadbDevice,
+    progress: String
 ): TestResult {
     val targetInstrumentation = "$instrumentationPackage/${instrumentationRunnerOptions.testInstrumentationRunner}"
 
@@ -45,17 +46,17 @@ internal fun runTest(
 
             when {
                 shellOutput == null -> {
-                    logger.error("${device.serial}: $testName: TIMED OUT")
+                    logger.error("$progress -> ${device.serial}: $testName: TIMED OUT")
                     TestResult.Failed(testTime, "Test timed out", device.serial)
                 }
 
                 shellOutput.endsWith("OK (1 test)") -> {
-                    logger.lifecycle("${device.serial}: $testName: PASSED")
+                    logger.lifecycle("$progress -> ${device.serial}: $testName: PASSED")
                     TestResult.Passed(testTime)
                 }
 
                 shellOutput.endsWith("OK (0 tests)") -> {
-                    logger.lifecycle("${device.serial}: $testName: IGNORED")
+                    logger.lifecycle("$progress -> ${device.serial}: $testName: IGNORED")
                     TestResult.Ignored
                 }
 

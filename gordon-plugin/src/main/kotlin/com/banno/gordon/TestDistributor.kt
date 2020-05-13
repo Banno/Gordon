@@ -48,7 +48,8 @@ internal fun runAllTests(
                         dispatcher,
                         deviceSerials,
                         allTestCases.associateWith { TestResult.NotRun }
-                    )
+                    ),
+                    totalTests = allTestCases.size
                 ).awaitAll()
                     .fold(emptyMap()) { accumulated, item -> accumulated + item }
 
@@ -66,7 +67,8 @@ internal fun runAllTests(
                             dispatcher,
                             deviceSerials,
                             testsThatDidNotRun
-                        )
+                        ),
+                        totalTests = testsThatDidNotRun.size
                     ).awaitAll()
                         .fold(emptyMap()) { accumulated, item -> accumulated + item }
                 }
@@ -85,7 +87,8 @@ internal fun runAllTests(
                             dispatcher,
                             deviceSerials,
                             testsThatFailed
-                        )
+                        ),
+                        totalTests = testsThatFailed.size
                     ).awaitAll()
                         .fold(emptyMap()) { accumulated, item ->
                             val hydratedResults = item.mapValues { (testCase, result) ->
@@ -132,13 +135,16 @@ private fun CoroutineScope.runTestsInPool(
     instrumentationRunnerOptions: InstrumentationRunnerOptions,
     testTimeoutMillis: Long,
     devices: List<JadbDevice>,
-    testDistributor: TestDistributor
+    testDistributor: TestDistributor,
+    totalTests: Int
 ): List<Deferred<Map<TestCase, TestResult>>> {
+    var index = 0f
     return devices.map { device ->
         async(context = dispatcher, start = CoroutineStart.LAZY) {
             testDistributor.testCasesChannel(device.serial)
                 .consumeAsFlow()
                 .map { test ->
+                    index++
                     if (test.isIgnored) {
                         test to TestResult.Ignored
                     } else {
@@ -148,7 +154,8 @@ private fun CoroutineScope.runTestsInPool(
                             instrumentationRunnerOptions = instrumentationRunnerOptions,
                             testTimeoutMillis = testTimeoutMillis,
                             test = test,
-                            device = device
+                            device = device,
+                            progress = getProgress(index, totalTests)
                         )
                     }
                 }
@@ -156,6 +163,11 @@ private fun CoroutineScope.runTestsInPool(
                 .toMap()
         }
     }
+}
+
+private fun getProgress(currentTest: Float, totalTests: Int): String {
+    val progress = "%s %s Complete"
+    return progress.format("${currentTest.toInt()}/$totalTests", "${(currentTest / totalTests) * 100}%")
 }
 
 private class TestDistributor(

@@ -59,11 +59,13 @@ internal abstract class GordonTestTask : DefaultTask() {
     private val installTimeoutMillis = project.extensions.getByType<GordonExtension>().installTimeoutMillis
     private val testTimeoutMillis = project.extensions.getByType<GordonExtension>().testTimeoutMillis
 
+    @get:Input
     @Option(option = "tests", description = "Comma-separated packages, classes, or methods.")
     val commandlineTestFilter: Property<String> = project.objects.property()
 
     private val extensionTestFilter = project.extensions.getByType<GordonExtension>().testFilter
 
+    @get:Input
     internal val androidInstrumentationRunnerOptions: Property<InstrumentationRunnerOptions> =
         project.objects.property()
 
