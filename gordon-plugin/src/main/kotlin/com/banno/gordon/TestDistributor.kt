@@ -67,8 +67,7 @@ internal fun runAllTests(
                             dispatcher,
                             deviceSerials,
                             testsThatDidNotRun
-                        ),
-                        totalTests = testsThatDidNotRun.size
+                        )
                     ).awaitAll()
                         .fold(emptyMap()) { accumulated, item -> accumulated + item }
                 }
@@ -87,8 +86,7 @@ internal fun runAllTests(
                             dispatcher,
                             deviceSerials,
                             testsThatFailed
-                        ),
-                        totalTests = testsThatFailed.size
+                        )
                     ).awaitAll()
                         .fold(emptyMap()) { accumulated, item ->
                             val hydratedResults = item.mapValues { (testCase, result) ->
@@ -136,7 +134,7 @@ private fun CoroutineScope.runTestsInPool(
     testTimeoutMillis: Long,
     devices: List<JadbDevice>,
     testDistributor: TestDistributor,
-    totalTests: Int
+    totalTests: Int? = null
 ): List<Deferred<Map<TestCase, TestResult>>> {
     var index = 0f
     return devices.map { device ->
@@ -165,9 +163,10 @@ private fun CoroutineScope.runTestsInPool(
     }
 }
 
-private fun getProgress(currentTest: Float, totalTests: Int): String {
-    val progress = "%s %s Complete"
-    return progress.format("${currentTest.toInt()}/$totalTests", "${(currentTest / totalTests) * 100}%")
+private fun getProgress(currentTest: Float, totalTests: Int?): String {
+    return totalTests?.let{
+        "%s %s Complete".format("${currentTest.toInt()}/$totalTests", "${(currentTest / totalTests) * 100}%")
+    } ?: "Retrying..."
 }
 
 private class TestDistributor(
