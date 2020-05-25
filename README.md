@@ -10,6 +10,9 @@ Gordon is an Android instrumentation test runner designed for speed, simplicity,
 - Flexible test filtering, configurable [from Gradle](#configuring) or [commandline](#filtering)
 - JUnit and HTML [reports](#reports)
 
+#### See also:
+[Better Android Instrumentation Testing with Gordon](https://proandroiddev.com/gordon-android-testing-49a5448317aa) on ProAndroidDev
+
 ## Setup
 
 ### With Gradle plugins block
