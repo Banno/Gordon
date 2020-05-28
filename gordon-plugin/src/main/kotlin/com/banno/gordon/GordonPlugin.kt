@@ -31,11 +31,16 @@ class GordonPlugin : Plugin<Project> {
                 description = "Installs and runs instrumentation tests$variantDescription."
 
                 val testedVariant = testVariant.testedVariant
-                val instrumentationApk = testVariant.requireMainApkOutputFile()
-                val applicationApk = when (androidPluginType) {
-                    AndroidPluginType.LIBRARY -> instrumentationApk
-                    AndroidPluginType.APP -> (testedVariant as ApkVariant).requireMainApkOutputFile()
+
+                val (applicationApk, applicationPackage) = when (androidPluginType) {
+                    AndroidPluginType.LIBRARY ->
+                        null to null
+                    AndroidPluginType.APP ->
+                        (testedVariant as ApkVariant).requireMainApkOutputFile() to testedVariant.applicationId
                 }
+
+                val instrumentationApk = testVariant.requireMainApkOutputFile()
+                val instrumentationPackage = testVariant.applicationId
 
                 val instrumentationRunnerOptions = InstrumentationRunnerOptions(
                     testInstrumentationRunner = testedVariant.mergedFlavor.testInstrumentationRunner
@@ -46,8 +51,13 @@ class GordonPlugin : Plugin<Project> {
 
                 dependsOn(testVariant.assembleProvider, testedVariant.assembleProvider)
 
+                if (applicationPackage != null && applicationApk != null) {
+                    this.applicationApk.apply { set(applicationApk) }.finalizeValue()
+                    this.applicationPackage.apply { set(applicationPackage) }.finalizeValue()
+                }
+
                 this.instrumentationApk.apply { set(instrumentationApk) }.finalizeValue()
-                this.applicationApk.apply { set(applicationApk) }.finalizeValue()
+                this.instrumentationPackage.apply { set(instrumentationPackage) }.finalizeValue()
                 this.androidInstrumentationRunnerOptions.apply { set(instrumentationRunnerOptions) }.finalizeValue()
             }
         }

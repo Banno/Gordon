@@ -20,6 +20,7 @@ import org.gradle.api.tasks.options.Option
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.property
 import se.vidstige.jadb.JadbConnection
+import java.io.File
 
 @CacheableTask
 internal abstract class GordonTestTask : DefaultTask() {
@@ -31,6 +32,12 @@ internal abstract class GordonTestTask : DefaultTask() {
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     internal val applicationApk: RegularFileProperty = project.objects.fileProperty()
+
+    @get:Input
+    internal val applicationPackage: Property<String> = project.objects.property()
+
+    @get:Input
+    internal val instrumentationPackage: Property<String> = project.objects.property()
 
     @get:Input
     internal val instrumentationRunnerOptions: InstrumentationRunnerOptions
@@ -77,6 +84,8 @@ internal abstract class GordonTestTask : DefaultTask() {
     val reportDirectory: Provider<Directory> = project.layout.buildDirectory.dir("reports/$name")
 
     init {
+        applicationApk.convention { PLACEHOLDER_APPLICATION_APK }
+        applicationPackage.convention(PLACEHOLDER_APPLICATION_PACKAGE)
         commandlineTestFilter.convention("")
     }
 
@@ -86,8 +95,6 @@ internal abstract class GordonTestTask : DefaultTask() {
             testResultsDirectory.get().asFile.clear().bind()
             reportDirectory.get().asFile.clear().bind()
 
-            val applicationPackage = getManifestPackage(applicationApk.get().asFile).bind()
-            val instrumentationPackage = getManifestPackage(instrumentationApk.get().asFile).bind()
             val pools = calculatePools(
                 JadbConnection(),
                 poolingStrategy.get(),
@@ -105,12 +112,15 @@ internal abstract class GordonTestTask : DefaultTask() {
                 }
             }
 
+            val applicationApk = applicationApk.get().asFile.takeIf { it != PLACEHOLDER_APPLICATION_APK }
+            val applicationPackage = applicationPackage.get().takeIf { it != PLACEHOLDER_APPLICATION_PACKAGE }
+
             pools.flatMap { it.devices }.reinstall(
                 dispatcher = Dispatchers.Default,
                 logger = logger,
                 applicationPackage = applicationPackage,
-                instrumentationPackage = instrumentationPackage,
-                applicationApk = applicationApk.get().asFile,
+                instrumentationPackage = instrumentationPackage.get(),
+                applicationApk = applicationApk,
                 instrumentationApk = instrumentationApk.get().asFile,
                 installTimeoutMillis = installTimeoutMillis.get()
             ).bind()
@@ -118,7 +128,7 @@ internal abstract class GordonTestTask : DefaultTask() {
             val testResults = runAllTests(
                 dispatcher = Dispatchers.Default,
                 logger = logger,
-                instrumentationPackage = instrumentationPackage,
+                instrumentationPackage = instrumentationPackage.get(),
                 instrumentationRunnerOptions = instrumentationRunnerOptions,
                 allTestCases = testCases,
                 allPools = pools,
@@ -133,7 +143,7 @@ internal abstract class GordonTestTask : DefaultTask() {
             pools.flatMap { it.devices }.uninstall(
                 dispatcher = Dispatchers.Default,
                 applicationPackage = applicationPackage,
-                instrumentationPackage = instrumentationPackage
+                instrumentationPackage = instrumentationPackage.get()
             ).bind()
 
             val testRunFailed =
@@ -167,3 +177,6 @@ internal fun TestCase.matchesFilter(filters: List<String>): Boolean {
                 fullyQualifiedClassName.split('.').takeLast(filter.size) == filter
     }
 }
+
+private val PLACEHOLDER_APPLICATION_APK = File.createTempFile("PLACEHOLDER_APPLICATION_APK", null)
+private const val PLACEHOLDER_APPLICATION_PACKAGE = "PLACEHOLDER_APPLICATION_PACKAGE"
