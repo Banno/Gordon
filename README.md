@@ -15,6 +15,9 @@ Gordon is an Android instrumentation test runner designed for speed, simplicity,
 
 ## Setup
 
+### Environment //TODO - see if there's any way to include aapt2, so we don't need this extra setup step
+Gordon requires aapt2 to be on your path. You can do this by adding your build tools directory (such as `$ANDROID_HOME/build-tools/29.0.2`) to your path, or by [downloading aapt2 from Google Maven](https://developer.android.com/studio/command-line/aapt2#download_aapt2), unzipping the JAR, and moving the aapt2 binary to somewhere on your path, such as `/usr/local/bin`.
+
 ### With Gradle plugins block
 
 #### settings.gradle.kts of your root project
@@ -172,6 +175,9 @@ If a retry quota is specified, Gordon will, after trying tests once, first retry
 
 #### Reports
 Gordon generates junit reports in the build directory / `test-results`, and an HTML report in the build directory / `reports`.
+
+## Other notes
+- Gordon does not support [ABI/density splits](https://developer.android.com/studio/build/configure-apk-splits). We highly recommend you use [the App Bundle format](https://developer.android.com/guide/app-bundle) instead. However, Gordon v1.3.1 and older versions support splits, so you may be able to use an old version for now.
 
 ## Contributing
 

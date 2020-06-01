@@ -31,7 +31,7 @@ internal abstract class GordonTestTask : DefaultTask() {
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
-    internal val applicationApk: RegularFileProperty = project.objects.fileProperty()
+    internal val applicationAab: RegularFileProperty = project.objects.fileProperty()
 
     @get:Input
     internal val applicationPackage: Property<String> = project.objects.property()
@@ -84,7 +84,7 @@ internal abstract class GordonTestTask : DefaultTask() {
     val reportDirectory: Provider<Directory> = project.layout.buildDirectory.dir("reports/$name")
 
     init {
-        applicationApk.convention { PLACEHOLDER_APPLICATION_APK }
+        applicationAab.convention { PLACEHOLDER_APPLICATION_AAB }
         applicationPackage.convention(PLACEHOLDER_APPLICATION_PACKAGE)
         commandlineTestFilter.convention("")
     }
@@ -112,7 +112,7 @@ internal abstract class GordonTestTask : DefaultTask() {
                 }
             }
 
-            val applicationApk = applicationApk.get().asFile.takeIf { it != PLACEHOLDER_APPLICATION_APK }
+            val applicationAab = applicationAab.get().asFile.takeIf { it != PLACEHOLDER_APPLICATION_AAB }
             val applicationPackage = applicationPackage.get().takeIf { it != PLACEHOLDER_APPLICATION_PACKAGE }
 
             pools.flatMap { it.devices }.reinstall(
@@ -120,7 +120,8 @@ internal abstract class GordonTestTask : DefaultTask() {
                 logger = logger,
                 applicationPackage = applicationPackage,
                 instrumentationPackage = instrumentationPackage.get(),
-                applicationApk = applicationApk,
+                dynamicModule = project.name.takeIf { project.androidPluginType() == AndroidPluginType.DYNAMIC_FEATURE },
+                applicationAab = applicationAab,
                 instrumentationApk = instrumentationApk.get().asFile,
                 installTimeoutMillis = installTimeoutMillis.get()
             ).bind()
@@ -178,5 +179,5 @@ internal fun TestCase.matchesFilter(filters: List<String>): Boolean {
     }
 }
 
-private val PLACEHOLDER_APPLICATION_APK = File.createTempFile("PLACEHOLDER_APPLICATION_APK", null)
+private val PLACEHOLDER_APPLICATION_AAB = File.createTempFile("PLACEHOLDER_APPLICATION_AAB", null)
 private const val PLACEHOLDER_APPLICATION_PACKAGE = "PLACEHOLDER_APPLICATION_PACKAGE"

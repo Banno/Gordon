@@ -2,6 +2,7 @@ package com.banno.gordon
 
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.ApkVariant
+import com.android.build.gradle.api.TestVariant
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
@@ -32,14 +33,20 @@ class GordonPlugin : Plugin<Project> {
 
                 val testedVariant = testVariant.testedVariant
 
-                val (applicationApk, applicationPackage) = when (androidPluginType) {
+                val (applicationAab, applicationPackage) = when (androidPluginType) {
                     AndroidPluginType.LIBRARY ->
                         null to null
-                    AndroidPluginType.APP ->
-                        (testedVariant as ApkVariant).requireMainApkOutputFile() to testedVariant.applicationId
+                    AndroidPluginType.APP -> {
+                        dependsOn(project.tasks.named("bundle${testedVariant.name.capitalize()}"))
+                        (testedVariant as ApkVariant).aabOutputFile(project) to testedVariant.applicationId
+                    }
+                    AndroidPluginType.DYNAMIC_FEATURE -> {
+                        TODO()//Find the app module on which the project depends and depend on said app's aab and applicationId
+                    }
                 }
 
-                val instrumentationApk = testVariant.requireMainApkOutputFile()
+                dependsOn(testVariant.assembleProvider)
+                val instrumentationApk = testVariant.apkOutputFile()
                 val instrumentationPackage = testVariant.applicationId
 
                 val instrumentationRunnerOptions = InstrumentationRunnerOptions(
@@ -49,10 +56,8 @@ class GordonPlugin : Plugin<Project> {
                     animationsDisabled = androidExtension.testOptions.animationsDisabled
                 )
 
-                dependsOn(testVariant.assembleProvider, testedVariant.assembleProvider)
-
-                if (applicationPackage != null && applicationApk != null) {
-                    this.applicationApk.apply { set(applicationApk) }.finalizeValue()
+                if (applicationPackage != null && applicationAab != null) {
+                    this.applicationAab.apply { set(applicationAab) }.finalizeValue()
                     this.applicationPackage.apply { set(applicationPackage) }.finalizeValue()
                 }
 
@@ -63,13 +68,11 @@ class GordonPlugin : Plugin<Project> {
         }
     }
 
-    private fun ApkVariant.requireMainApkOutputFile() = packageApplicationProvider.flatMap { packageAppTask ->
-        val apkNames = packageAppTask.apkNames
-
-        val apkName = apkNames.singleOrNull()
-            ?: apkNames.singleOrNull { it.contains("universal-") }
-            ?: throw IllegalStateException("Gordon cannot be used without enabling universalApk in your abi splits")
-
-        packageAppTask.outputDirectory.file(apkName)
+    private fun TestVariant.apkOutputFile() = packageApplicationProvider.flatMap {
+        it.outputDirectory.file(it.apkNames.single())
     }
+
+    private fun ApkVariant.aabOutputFile(project: Project) = project.layout.buildDirectory.file(
+        "outputs/bundle/$name/${project.name}-${productFlavors.joinToString("-") { it.name }}-${buildType.name}.aab"
+    )
 }
