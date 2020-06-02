@@ -14,5 +14,5 @@ internal fun Project.androidPluginType() = when {
     plugins.hasPlugin(AppPlugin::class) -> AndroidPluginType.APP
     plugins.hasPlugin(LibraryPlugin::class) -> AndroidPluginType.LIBRARY
     plugins.hasPlugin(DynamicFeaturePlugin::class) -> AndroidPluginType.DYNAMIC_FEATURE
-    else -> throw IllegalStateException("Gordon plugin must be applied after applying the application, library, or dynamic-feature Android plugin")
+    else -> null
 }
