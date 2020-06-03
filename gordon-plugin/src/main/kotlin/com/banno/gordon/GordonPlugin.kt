@@ -75,7 +75,7 @@ class GordonPlugin : Plugin<Project> {
     }
 
     private fun ApplicationVariant.aabOutputFile(appProject: Project) = appProject.layout.buildDirectory.file(
-        "outputs/bundle/$name/${appProject.name}-${productFlavors.joinToString("-") { it.name }}-${buildType.name}.aab"
+        "outputs/bundle/$name/${appProject.name}-$baseName.aab"
     )
 
     private fun appDependencyOfFeature(
