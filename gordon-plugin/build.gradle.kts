@@ -21,9 +21,9 @@ dependencies {
 
     val androidGradlePluginVersion: String by project
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
-
-    implementation("com.github.vidstige:jadb:v1.1.0")
+    implementation("com.android.tools.build:bundletool:0.15.0")
     implementation("org.smali:dexlib2:2.4.0")
+    implementation("com.github.vidstige:jadb:v1.1.0")
 
     implementation("io.arrow-kt:arrow-core-data:0.10.4")
     implementation("io.arrow-kt:arrow-fx:0.10.4")
@@ -34,6 +34,18 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
     testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+}
+
+val aapt2Version = "4.0.0-6051327"
+val jar = tasks.named<Jar>("jar")
+mapOf(
+    "linux" to "linux/",
+    "osx" to "macos/",
+    "windows" to "windows/"
+).forEach { (classifier, jarDestination) ->
+    val configuration = configurations.register("aapt2$classifier")
+    dependencies.add(configuration.name, "com.android.tools.build:aapt2:$aapt2Version:$classifier")
+    jar.configure { from(configuration.map { zipTree(it.singleFile) }) { into(jarDestination) } }
 }
 
 gradlePlugin {

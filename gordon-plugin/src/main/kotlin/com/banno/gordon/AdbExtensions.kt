@@ -100,7 +100,6 @@ internal fun buildApkSet(aab: File) = IO {
                 "build-apks",
                 "--bundle=${aab.path}",
                 "--output=${it.path}",
-                "--aapt2=aapt2",
                 "--overwrite"
             ),
             DdmlibAdbServer.getInstance()
