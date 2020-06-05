@@ -112,8 +112,8 @@ internal abstract class GordonTestTask : DefaultTask() {
                 }
             }
 
-            val applicationAab = applicationAab.get().asFile.takeIf { it != PLACEHOLDER_APPLICATION_AAB }
-            val applicationPackage = applicationPackage.get().takeIf { it != PLACEHOLDER_APPLICATION_PACKAGE }
+            val applicationAab = applicationAab.get().asFile.takeUnless { it == PLACEHOLDER_APPLICATION_AAB }
+            val applicationPackage = applicationPackage.get().takeUnless { it == PLACEHOLDER_APPLICATION_PACKAGE }
 
             pools.flatMap { it.devices }.reinstall(
                 dispatcher = Dispatchers.Default,
