@@ -143,7 +143,10 @@ private fun CoroutineScope.runTestsInPool(
                 .consumeAsFlow()
                 .map { test ->
                     index++
+                    val progress = getProgress(index, totalTests)
+
                     if (test.isIgnored) {
+                        logger.logIgnored(test, progress)
                         test to TestResult.Ignored
                     } else {
                         test to runTest(
@@ -153,7 +156,7 @@ private fun CoroutineScope.runTestsInPool(
                             testTimeoutMillis = testTimeoutMillis,
                             test = test,
                             device = device,
-                            progress = getProgress(index, totalTests)
+                            progress = progress
                         )
                     }
                 }

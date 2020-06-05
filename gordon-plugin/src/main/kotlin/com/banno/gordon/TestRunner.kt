@@ -28,14 +28,12 @@ internal fun runTest(
 
     val command = "am instrument $flags $options $targetInstrumentation"
 
-    val testName = "${test.fullyQualifiedClassName.substringAfterLast('.')}.${test.methodName}"
-
     return device.executeShellWithTimeout(testTimeoutMillis, command)
         .attempt()
         .unsafeRunSync()
         .fold(
             {
-                logger.error("$progress -> ${device.serial}: $testName: UNABLE TO RUN")
+                logger.error("$progress -> ${device.serial}: ${test.classAndMethodName}: UNABLE TO RUN")
                 TestResult.NotRun
             }
         ) { shellOutput: String? ->
@@ -46,25 +44,31 @@ internal fun runTest(
 
             when {
                 shellOutput == null -> {
-                    logger.error("$progress -> ${device.serial}: $testName: TIMED OUT")
+                    logger.error("$progress -> ${device.serial}: ${test.classAndMethodName}: TIMED OUT")
                     TestResult.Failed(testTime, "Test timed out", device.serial)
                 }
 
                 shellOutput.endsWith("OK (1 test)") -> {
-                    logger.lifecycle("$progress -> ${device.serial}: $testName: PASSED")
+                    logger.lifecycle("$progress -> ${device.serial}: ${test.classAndMethodName}: PASSED")
                     TestResult.Passed(testTime)
                 }
 
                 shellOutput.endsWith("OK (0 tests)") -> {
-                    logger.lifecycle("$progress -> ${device.serial}: $testName: IGNORED")
+                    logger.lifecycle("$progress -> ${device.serial}: ${test.classAndMethodName}: IGNORED")
                     TestResult.Ignored
                 }
 
                 else -> {
                     val failureOutput = shellOutput.substringBeforeLast("There was 1 failure")
-                    logger.error("$progress -> ${device.serial}: $testName: FAILED\n$failureOutput\n")
+                    logger.error("$progress -> ${device.serial}: ${test.classAndMethodName}: FAILED\n$failureOutput\n")
                     TestResult.Failed(testTime, failureOutput, device.serial)
                 }
             }
         }
 }
+
+internal fun Logger.logIgnored(test: TestCase, progress: String) =
+    lifecycle("$progress -> ${test.classAndMethodName}: IGNORED")
+
+private val TestCase.classAndMethodName
+    get() = "${fullyQualifiedClassName.substringAfterLast('.')}.${methodName}"
