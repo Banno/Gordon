@@ -2,14 +2,15 @@ package com.banno.gordon
 
 import arrow.fx.IO
 import arrow.fx.extensions.fx
+import com.android.tools.build.bundletool.commands.BuildApksCommand
+import com.android.tools.build.bundletool.commands.InstallApksCommand
+import com.android.tools.build.bundletool.device.DdmlibAdbServer
+import com.android.tools.build.bundletool.flags.FlagParser
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeoutOrNull
 import org.gradle.api.logging.Logger
 import se.vidstige.jadb.JadbConnection
 import se.vidstige.jadb.JadbDevice
@@ -27,18 +28,10 @@ internal fun JadbDevice.executeShellWithTimeout(
     timeoutMillis: Long,
     command: String,
     vararg args: String
-): IO<String?> = IO {
-    val deferred = CoroutineScope(Dispatchers.IO).async {
-        executeShell(command, *args)
-            .use { it.reader().use { reader -> reader.readText() } }
-            .trim()
-    }
-
-    runBlocking {
-        withTimeoutOrNull(timeoutMillis) {
-            deferred.await()
-        }
-    }
+): IO<String?> = ioWithTimeout(timeoutMillis) {
+    executeShell(command, *args)
+        .use { it.reader().use { reader -> reader.readText() } }
+        .trim()
 }
 
 internal fun JadbDevice.isTablet(tabletShortestWidthDp: Int?): IO<Boolean> = when (tabletShortestWidthDp) {
@@ -78,6 +71,42 @@ internal fun JadbDevice.installApk(timeoutMillis: Long, apk: File, vararg option
     }
 }
 
+internal fun JadbDevice.installApkSet(timeoutMillis: Long, apkSet: File, dynamicModule: String?) = IO.fx {
+    val result = ioWithTimeout(timeoutMillis) {
+        InstallApksCommand.fromFlags(
+            FlagParser().parse(
+                *listOfNotNull(
+                    "install-apks",
+                    "--apks=${apkSet.path}",
+                    "--allow-downgrade",
+                    "--allow-test-only",
+                    "--device-id=$serial",
+                    dynamicModule?.let { "--modules=$it" }
+                ).toTypedArray()
+            ),
+            DdmlibAdbServer.getInstance()
+        ).execute()
+    }.bind()
+
+    if (result == null) {
+        raiseError<Unit>(IllegalStateException("Install timed out for ${apkSet.name} on $serial")).bind()
+    }
+}
+
+internal fun buildApkSet(aab: File) = IO {
+    File.createTempFile(aab.nameWithoutExtension, ".apks").also {
+        BuildApksCommand.fromFlags(
+            FlagParser().parse(
+                "build-apks",
+                "--bundle=${aab.path}",
+                "--output=${it.path}",
+                "--overwrite"
+            ),
+            DdmlibAdbServer.getInstance()
+        ).execute()
+    }
+}
+
 internal fun PackageManager.safeUninstall(packageName: String) = try {
     uninstall(Package(packageName))
 } catch (t: Throwable) {
@@ -85,15 +114,15 @@ internal fun PackageManager.safeUninstall(packageName: String) = try {
 
 internal fun List<JadbDevice>.uninstall(
     dispatcher: CoroutineDispatcher,
-    applicationPackage: String,
+    applicationPackage: String?,
     instrumentationPackage: String
 ) = IO {
     runBlocking {
         map { device ->
             async(context = dispatcher, start = CoroutineStart.LAZY) {
                 PackageManager(device).run {
-                    safeUninstall(applicationPackage)
-                    if (instrumentationPackage != applicationPackage) safeUninstall(instrumentationPackage)
+                    applicationPackage?.let(::safeUninstall)
+                    safeUninstall(instrumentationPackage)
                 }
             }
         }.awaitAll()
@@ -103,24 +132,29 @@ internal fun List<JadbDevice>.uninstall(
 internal fun List<JadbDevice>.reinstall(
     dispatcher: CoroutineDispatcher,
     logger: Logger,
-    applicationPackage: String,
+    applicationPackage: String?,
     instrumentationPackage: String,
-    applicationApk: File,
+    dynamicModule: String?,
+    applicationAab: File?,
     instrumentationApk: File,
     installTimeoutMillis: Long
 ) = IO {
     runBlocking {
+        val applicationApkSet = applicationAab?.let(::buildApkSet)?.unsafeRunSync()
+
         map { device ->
             async(context = dispatcher, start = CoroutineStart.LAZY) {
                 val packageManager = PackageManager(device)
-                logger.lifecycle("${device.serial}: installing $applicationPackage")
-                packageManager.safeUninstall(applicationPackage)
-                device.installApk(installTimeoutMillis, applicationApk, "-d", "-r").unsafeRunSync()
-                if (instrumentationApk != applicationApk) {
-                    logger.lifecycle("${device.serial}: installing $instrumentationPackage")
-                    packageManager.safeUninstall(instrumentationPackage)
-                    device.installApk(installTimeoutMillis, instrumentationApk, "-d", "-r", "-t").unsafeRunSync()
+
+                if (applicationPackage != null && applicationApkSet != null) {
+                    logger.lifecycle("${device.serial}: installing $applicationPackage")
+                    packageManager.safeUninstall(applicationPackage)
+                    device.installApkSet(installTimeoutMillis, applicationApkSet, dynamicModule).unsafeRunSync()
                 }
+
+                logger.lifecycle("${device.serial}: installing $instrumentationPackage")
+                packageManager.safeUninstall(instrumentationPackage)
+                device.installApk(installTimeoutMillis, instrumentationApk, "-d", "-r", "-t").unsafeRunSync()
             }
         }.awaitAll()
     }

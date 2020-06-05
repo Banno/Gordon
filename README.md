@@ -173,6 +173,9 @@ If a retry quota is specified, Gordon will, after trying tests once, first retry
 #### Reports
 Gordon generates junit reports in the build directory / `test-results`, and an HTML report in the build directory / `reports`.
 
+## Other notes
+- Gordon does not support [ABI/density splits](https://developer.android.com/studio/build/configure-apk-splits). We highly recommend you use [the App Bundle format](https://developer.android.com/guide/app-bundle) instead. However, Gordon v1.3.1 and older versions support splits, so you may be able to use an old version for now.
+
 ## Contributing
 
 Contributions are welcome. You can use the included `app` module to locally test changes to the Gordon plugin.
