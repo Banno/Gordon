@@ -35,7 +35,7 @@ internal fun runTest(
         .unsafeRunSync()
         .fold(
             {
-                logger.error("${device.serial}: $testName: UNABLE TO RUN")
+                logger.error("$progress -> ${device.serial}: $testName: UNABLE TO RUN")
                 TestResult.NotRun
             }
         ) { shellOutput: String? ->
@@ -62,7 +62,7 @@ internal fun runTest(
 
                 else -> {
                     val failureOutput = shellOutput.substringBeforeLast("There was 1 failure")
-                    logger.error("${device.serial}: $testName: FAILED\n$failureOutput\n")
+                    logger.error("$progress -> ${device.serial}: $testName: FAILED\n$failureOutput\n")
                     TestResult.Failed(testTime, failureOutput, device.serial)
                 }
             }
