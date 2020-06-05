@@ -71,4 +71,4 @@ internal fun Logger.logIgnored(test: TestCase, progress: String) =
     lifecycle("$progress -> ${test.classAndMethodName}: IGNORED")
 
 private val TestCase.classAndMethodName
-    get() = "${fullyQualifiedClassName.substringAfterLast('.')}.${methodName}"
+    get() = "${fullyQualifiedClassName.substringAfterLast('.')}.$methodName"
