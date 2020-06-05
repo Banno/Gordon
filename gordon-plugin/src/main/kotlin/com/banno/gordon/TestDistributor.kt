@@ -48,7 +48,8 @@ internal fun runAllTests(
                         dispatcher,
                         deviceSerials,
                         allTestCases.associateWith { TestResult.NotRun }
-                    )
+                    ),
+                    totalTests = allTestCases.size
                 ).awaitAll()
                     .fold(emptyMap()) { accumulated, item -> accumulated + item }
 
@@ -132,14 +133,20 @@ private fun CoroutineScope.runTestsInPool(
     instrumentationRunnerOptions: InstrumentationRunnerOptions,
     testTimeoutMillis: Long,
     devices: List<JadbDevice>,
-    testDistributor: TestDistributor
+    testDistributor: TestDistributor,
+    totalTests: Int? = null
 ): List<Deferred<Map<TestCase, TestResult>>> {
+    var index = 0
     return devices.map { device ->
         async(context = dispatcher, start = CoroutineStart.LAZY) {
             testDistributor.testCasesChannel(device.serial)
                 .consumeAsFlow()
                 .map { test ->
+                    index++
+                    val progress = getProgress(index, totalTests)
+
                     if (test.isIgnored) {
+                        logger.logIgnored(test, progress)
                         test to TestResult.Ignored
                     } else {
                         test to runTest(
@@ -148,7 +155,8 @@ private fun CoroutineScope.runTestsInPool(
                             instrumentationRunnerOptions = instrumentationRunnerOptions,
                             testTimeoutMillis = testTimeoutMillis,
                             test = test,
-                            device = device
+                            device = device,
+                            progress = progress
                         )
                     }
                 }
@@ -157,6 +165,9 @@ private fun CoroutineScope.runTestsInPool(
         }
     }
 }
+
+private fun getProgress(currentTest: Int, totalTests: Int?) =
+    totalTests?.let { "$currentTest/$totalTests" } ?: "Retrying"
 
 private class TestDistributor(
     private val dispatcher: CoroutineDispatcher,
