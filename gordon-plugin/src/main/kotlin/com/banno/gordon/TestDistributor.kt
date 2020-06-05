@@ -136,7 +136,7 @@ private fun CoroutineScope.runTestsInPool(
     testDistributor: TestDistributor,
     totalTests: Int? = null
 ): List<Deferred<Map<TestCase, TestResult>>> {
-    var index = 0f
+    var index = 0
     return devices.map { device ->
         async(context = dispatcher, start = CoroutineStart.LAZY) {
             testDistributor.testCasesChannel(device.serial)
@@ -163,11 +163,8 @@ private fun CoroutineScope.runTestsInPool(
     }
 }
 
-private fun getProgress(currentTest: Float, totalTests: Int?): String {
-    return totalTests?.let{
-        "%s %s Complete".format("${currentTest.toInt()}/$totalTests", "${(currentTest / totalTests) * 100}%")
-    } ?: "Retrying..."
-}
+private fun getProgress(currentTest: Int, totalTests: Int?) =
+    totalTests?.let { "$currentTest/$totalTests" } ?: "Retrying"
 
 private class TestDistributor(
     private val dispatcher: CoroutineDispatcher,
