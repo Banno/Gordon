@@ -15,9 +15,9 @@ repositories {
 
 dependencies {
     implementation(gradleKotlinDsl())
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.6.12")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.1")
 
     val androidGradlePluginVersion: String by project
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
