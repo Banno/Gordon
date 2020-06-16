@@ -33,19 +33,22 @@ class TestDistributionTest {
 
         val pools = listOf(
             DevicePool(
-                "First", listOf(
+                "First",
+                listOf(
                     anyJadbDevice(),
                     anyJadbDevice()
                 )
             ),
             DevicePool(
-                "Second", listOf(
+                "Second",
+                listOf(
                     anyJadbDevice(),
                     anyJadbDevice()
                 )
             ),
             DevicePool(
-                "Third", listOf(
+                "Third",
+                listOf(
                     anyJadbDevice(),
                     anyJadbDevice()
                 )

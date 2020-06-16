@@ -19,8 +19,8 @@ internal fun loadTestSuite(instrumentationApk: File): IO<List<TestCase>> = IO {
             val isAbstract = (it.accessFlags and AccessFlags.ABSTRACT.value != 0)
 
             !isInterface &&
-                    !isAbstract &&
-                    !isKotlinInterfaceDefaultImplementation
+                !isAbstract &&
+                !isKotlinInterfaceDefaultImplementation
         }
         .flatMap { classDef ->
             classDef.methods

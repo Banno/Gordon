@@ -36,21 +36,22 @@ internal fun JadbDevice.executeShellWithTimeout(
 
 internal fun JadbDevice.isTablet(tabletShortestWidthDp: Int?): IO<Boolean> = when (tabletShortestWidthDp) {
     null -> executeShellWithTimeout(20_000, "getprop", "ro.build.characteristics").map { it!!.contains("tablet") }
-    else -> executeShellWithTimeout(20_000, "wm", "size")
-        .flatMap { sizeString ->
-            executeShellWithTimeout(20_000, "wm", "density").map { sizeString!! to it!! }
-        }
-        .map { (sizeString, densityString) ->
-            val shortestWidthPixels = min(
-                sizeString.substringAfterLast("size:").substringBefore('x').trim().toInt(),
-                sizeString.substringAfterLast('x').trim().toInt()
-            )
-            val density = densityString.substringAfterLast("density:").trim().toInt()
+    else ->
+        executeShellWithTimeout(20_000, "wm", "size")
+            .flatMap { sizeString ->
+                executeShellWithTimeout(20_000, "wm", "density").map { sizeString!! to it!! }
+            }
+            .map { (sizeString, densityString) ->
+                val shortestWidthPixels = min(
+                    sizeString.substringAfterLast("size:").substringBefore('x').trim().toInt(),
+                    sizeString.substringAfterLast('x').trim().toInt()
+                )
+                val density = densityString.substringAfterLast("density:").trim().toInt()
 
-            val shortestWidthDp = shortestWidthPixels * 160 / density
+                val shortestWidthDp = shortestWidthPixels * 160 / density
 
-            shortestWidthDp >= tabletShortestWidthDp
-        }
+                shortestWidthDp >= tabletShortestWidthDp
+            }
 }
 
 internal fun JadbDevice.installApk(timeoutMillis: Long, apk: File, vararg options: String) = IO.fx {

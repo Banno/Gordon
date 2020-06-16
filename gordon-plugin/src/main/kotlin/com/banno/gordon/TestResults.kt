@@ -1,6 +1,6 @@
 package com.banno.gordon
 
-import kotlinx.html.*
+import kotlinx.html.* // ktlint-disable no-wildcard-imports
 import kotlinx.html.stream.appendHTML
 
 internal sealed class TestResult {
@@ -215,7 +215,8 @@ private fun FlowContent.addCollapsibleJavascript() {
                             content.style.maxHeight = content.scrollHeight + "px";
                         }
                     });
-                }""".trimIndent()
+                }
+                """.trimIndent()
             )
         }
     }
@@ -241,7 +242,8 @@ private fun HEAD.addTabsJavascript() {
                     
                     document.getElementById(poolName).style.display = "block";
                     evt.currentTarget.className += " active";
-                }""".trimIndent()
+                }
+                """.trimIndent()
             )
         }
     }
@@ -401,7 +403,8 @@ private fun HEAD.addCSS() {
                      p {
                          font-size: 14px;
                          line-height: 22px;
-                     }""".trimIndent()
+                     }
+                """.trimIndent()
             )
         }
     }

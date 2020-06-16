@@ -33,8 +33,9 @@ internal fun calculatePools(
             )
         }
 
-        is PoolingStrategy.Manual -> strategy.poolNameToDeviceSerials.map { (poolName, deviceSerials) ->
-            DevicePool(poolName, deviceSerials.mapNotNull { serial -> allDevices.find { it.serial == serial } })
-        }
+        is PoolingStrategy.Manual ->
+            strategy.poolNameToDeviceSerials.map { (poolName, deviceSerials) ->
+                DevicePool(poolName, deviceSerials.mapNotNull { serial -> allDevices.find { it.serial == serial } })
+            }
     }
 }
