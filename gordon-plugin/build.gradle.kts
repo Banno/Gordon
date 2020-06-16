@@ -28,7 +28,7 @@ dependencies {
     implementation("io.arrow-kt:arrow-core-data:0.10.4")
     implementation("io.arrow-kt:arrow-fx:0.10.4")
 
-    testImplementation("junit:junit:4.12")
+    testImplementation("junit:junit:4.13")
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
 }
 
