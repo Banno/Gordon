@@ -63,6 +63,24 @@ buildscript {
 apply plugin: "com.banno.gordon"
 ```
 
+### buildSrc
+
+If you have a buildSrc module, you may also need to add the dependency there if you get aapt2 errors.
+
+#### build.gradle.kts of your buildSrc module
+```kotlin
+repositories {
+    gradlePluginPortal()
+    google()
+    jcenter()
+    maven("https://www.jitpack.io")
+}
+
+dependencies {
+    implementation("com.banno.gordon:gordon-plugin:$gordonVersion")
+}
+```
+
 ### Configuring
 
 #### build.gradle.kts of any module for which you've applied Gordon
