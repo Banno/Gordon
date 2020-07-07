@@ -29,6 +29,12 @@ class TestFilteringTest {
     }
 
     @Test
+    fun shouldMatchOnAnnotationName() {
+        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false, setOf("com.banno.CustomAnnotation"))
+            .matchesFilter(listOf("com.banno.CustomAnnotation")) shouldEqual true
+    }
+
+    @Test
     fun shouldMatchIfAnyOfTheFiltersMatch() {
         TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
             .matchesFilter(listOf("com.banno.grip.accounts", "OtherTest")) shouldEqual true
@@ -56,5 +62,11 @@ class TestFilteringTest {
     fun shouldNotMatchEndingsOfClassNames() {
         TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
             .matchesFilter(listOf("FragmentTest")) shouldEqual false
+    }
+
+    @Test
+    fun shouldNotMatchPartialAnnotationNames() {
+        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false, setOf("com.banno.CustomAnnotation"))
+            .matchesFilter(listOf("CustomAnnotation")) shouldEqual false
     }
 }
