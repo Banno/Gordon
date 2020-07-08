@@ -170,13 +170,12 @@ internal abstract class GordonTestTask : DefaultTask() {
 internal fun TestCase.matchesFilter(filters: List<String>): Boolean {
     val fullyQualifiedTestMethod = "$fullyQualifiedClassName.$methodName"
 
-    return filters.isEmpty() || filters.any {
+    return filters.isEmpty() || annotations.intersect(filters).isNotEmpty() || filters.any {
         val filter = it.split('.')
 
         fullyQualifiedTestMethod.startsWith(it) ||
                 fullyQualifiedTestMethod.split('.').takeLast(filter.size) == filter ||
-                fullyQualifiedClassName.split('.').takeLast(filter.size) == filter ||
-                annotations.intersect(filters).isNotEmpty()
+                fullyQualifiedClassName.split('.').takeLast(filter.size) == filter
     }
 }
 
