@@ -12,6 +12,9 @@ class TestSuiteLoaderTest {
         val testSuite = loadTestSuite(instrumentation).unsafeRunSync()
 
         testSuite.sortedBy { it.fullyQualifiedClassName + it.methodName } shouldEqual listOf(
+            TestCase("com.banno.android.gordontest.AnnotatedTest", "annotatedA", false, setOf("androidx.test.filters.LargeTest", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.AnnotatedTest", "annotatedB", false, setOf("androidx.test.filters.SmallTest", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.AnnotatedTest", "annotatedC", false, setOf("androidx.test.filters.LargeTest", "androidx.test.filters.FlakyTest", "org.junit.Test")),
             TestCase("com.banno.android.gordontest.BaseClassTest", "baseA", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.BaseClassTest", "baseB", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.BaseClassTest", "baseC", false, setOf("org.junit.Test")),
