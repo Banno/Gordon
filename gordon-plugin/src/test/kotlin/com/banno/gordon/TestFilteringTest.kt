@@ -6,67 +6,67 @@ class TestFilteringTest {
 
     @Test
     fun shouldMatchOnClassName() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
-            .matchesFilter(listOf("AccountChainFragmentTest")) shouldEqual true
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false)
+            .matchesFilter(listOf("TestClassName")) shouldEqual true
     }
 
     @Test
     fun shouldMatchOnMethodName() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false)
             .matchesFilter(listOf("methodName")) shouldEqual true
     }
 
     @Test
     fun shouldMatchOnClassMethod() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
-            .matchesFilter(listOf("AccountChainFragmentTest.methodName")) shouldEqual true
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false)
+            .matchesFilter(listOf("TestClassName.methodName")) shouldEqual true
     }
 
     @Test
     fun shouldMatchOnPackageName() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
-            .matchesFilter(listOf("com.banno.grip.accounts")) shouldEqual true
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false)
+            .matchesFilter(listOf("com.banno.android.gordontest")) shouldEqual true
     }
 
     @Test
     fun shouldMatchOnAnnotationName() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false, setOf("com.banno.CustomAnnotation"))
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false, setOf("com.banno.CustomAnnotation"))
             .matchesFilter(listOf("com.banno.CustomAnnotation")) shouldEqual true
     }
 
     @Test
     fun shouldMatchIfAnyOfTheFiltersMatch() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
-            .matchesFilter(listOf("com.banno.grip.accounts", "OtherTest")) shouldEqual true
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false)
+            .matchesFilter(listOf("com.banno.android.gordontest", "OtherTest")) shouldEqual true
     }
 
     @Test
     fun shouldNotMatchIfClassNameDoesNotMatchFully() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
-            .matchesFilter(listOf("AccountChainFragment")) shouldEqual false
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false)
+            .matchesFilter(listOf("TestClass")) shouldEqual false
     }
 
     @Test
     fun shouldNotMatchPartialPackage() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
-            .matchesFilter(listOf("banno.grip")) shouldEqual false
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false)
+            .matchesFilter(listOf("banno.android")) shouldEqual false
     }
 
     @Test
     fun shouldNotMatchWithoutPeriodForClassMethod() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
-            .matchesFilter(listOf("AccountChainFragmentTestmethodName")) shouldEqual false
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false)
+            .matchesFilter(listOf("TestClassNamemethodName")) shouldEqual false
     }
 
     @Test
     fun shouldNotMatchEndingsOfClassNames() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false)
-            .matchesFilter(listOf("FragmentTest")) shouldEqual false
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false)
+            .matchesFilter(listOf("ClassName")) shouldEqual false
     }
 
     @Test
     fun shouldNotMatchPartialAnnotationNames() {
-        TestCase("com.banno.grip.accounts.AccountChainFragmentTest", "methodName", false, setOf("com.banno.CustomAnnotation"))
+        TestCase("com.banno.android.gordontest.TestClassName", "methodName", false, setOf("com.banno.CustomAnnotation"))
             .matchesFilter(listOf("CustomAnnotation")) shouldEqual false
     }
 }
