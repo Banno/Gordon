@@ -4,5 +4,5 @@ internal data class TestCase(
     val fullyQualifiedClassName: String,
     val methodName: String,
     val isIgnored: Boolean,
-    val annotations: Set<String> = setOf()
+    val annotations: Set<String> = emptySet()
 )
