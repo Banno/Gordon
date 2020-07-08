@@ -29,7 +29,10 @@ internal fun loadTestSuite(instrumentationApk: File): IO<List<TestCase>> = IO {
                         TestCase(
                             fullyQualifiedClassName = classDef.name,
                             methodName = method.name,
-                            isIgnored = method.isIgnored || classDef.isIgnored
+                            isIgnored = method.isIgnored || classDef.isIgnored,
+                            annotations = mutableSetOf<String>().apply {
+                                method.annotations.forEach { a -> this.add(a.name) }
+                            }
                         )
                     } else null
                 }

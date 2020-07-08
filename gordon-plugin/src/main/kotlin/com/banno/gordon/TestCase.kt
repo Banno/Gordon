@@ -3,5 +3,6 @@ package com.banno.gordon
 internal data class TestCase(
     val fullyQualifiedClassName: String,
     val methodName: String,
-    val isIgnored: Boolean
+    val isIgnored: Boolean,
+    val annotations: Set<String> = setOf()
 )

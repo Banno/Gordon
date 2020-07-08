@@ -66,7 +66,7 @@ internal abstract class GordonTestTask : DefaultTask() {
     private val installTimeoutMillis = project.extensions.getByType<GordonExtension>().installTimeoutMillis
     private val testTimeoutMillis = project.extensions.getByType<GordonExtension>().testTimeoutMillis
 
-    @Option(option = "tests", description = "Comma-separated packages, classes, or methods.")
+    @Option(option = "tests", description = "Comma-separated packages, classes, methods or annotations.")
     val commandlineTestFilter: Property<String> = project.objects.property()
 
     private val extensionTestFilter = project.extensions.getByType<GordonExtension>().testFilter
@@ -175,7 +175,8 @@ internal fun TestCase.matchesFilter(filters: List<String>): Boolean {
 
         fullyQualifiedTestMethod.startsWith(it) ||
                 fullyQualifiedTestMethod.split('.').takeLast(filter.size) == filter ||
-                fullyQualifiedClassName.split('.').takeLast(filter.size) == filter
+                fullyQualifiedClassName.split('.').takeLast(filter.size) == filter ||
+                annotations.intersect(filters).isNotEmpty()
     }
 }
 
