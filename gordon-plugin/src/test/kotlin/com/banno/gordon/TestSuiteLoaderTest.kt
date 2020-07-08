@@ -12,6 +12,11 @@ class TestSuiteLoaderTest {
         val testSuite = loadTestSuite(instrumentation).unsafeRunSync()
 
         testSuite.sortedBy { it.fullyQualifiedClassName + it.methodName } shouldEqual listOf(
+            TestCase("com.banno.android.gordontest.AnnotatedTestClass", "annotatedA", false, setOf("androidx.test.filters.FlakyTest", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.AnnotatedTestClass", "annotatedB", false, setOf("androidx.test.filters.FlakyTest", "androidx.test.filters.SmallTest", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.AnnotatedTest", "annotatedA", false, setOf("androidx.test.filters.LargeTest", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.AnnotatedTest", "annotatedB", false, setOf("androidx.test.filters.SmallTest", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.AnnotatedTest", "annotatedC", false, setOf("androidx.test.filters.LargeTest", "androidx.test.filters.FlakyTest", "org.junit.Test")),
             TestCase("com.banno.android.gordontest.BaseClassTest", "baseA", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.BaseClassTest", "baseB", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.BaseClassTest", "baseC", false, setOf("org.junit.Test")),
@@ -25,9 +30,9 @@ class TestSuiteLoaderTest {
             TestCase("com.banno.android.gordontest.FailingTest", "failure2", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.FailingTest", "failure3", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.FlakyTest", "flaky", false, setOf("org.junit.Test")),
-            TestCase("com.banno.android.gordontest.IgnoredClass", "a", true, setOf("org.junit.Test")),
-            TestCase("com.banno.android.gordontest.IgnoredClass", "b", true, setOf("org.junit.Test")),
-            TestCase("com.banno.android.gordontest.IgnoredClass", "c", true, setOf("org.junit.Test")),
+            TestCase("com.banno.android.gordontest.IgnoredClass", "a", true, setOf("org.junit.Ignore", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.IgnoredClass", "b", true, setOf("org.junit.Ignore", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.IgnoredClass", "c", true, setOf("org.junit.Ignore", "org.junit.Test")),
             TestCase("com.banno.android.gordontest.InheritedTest", "a", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.InheritedTest", "b", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.InheritedTest", "c", false, setOf("org.junit.Test")),

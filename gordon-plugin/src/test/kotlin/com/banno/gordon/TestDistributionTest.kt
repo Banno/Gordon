@@ -1,6 +1,9 @@
 package com.banno.gordon
 
-import com.banno.gordon.TestResult.*
+import com.banno.gordon.TestResult.Failed
+import com.banno.gordon.TestResult.Flaky
+import com.banno.gordon.TestResult.NotRun
+import com.banno.gordon.TestResult.Passed
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.anyVararg
 import com.nhaarman.mockitokotlin2.check

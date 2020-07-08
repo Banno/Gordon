@@ -30,9 +30,7 @@ internal fun loadTestSuite(instrumentationApk: File): IO<List<TestCase>> = IO {
                             fullyQualifiedClassName = classDef.name,
                             methodName = method.name,
                             isIgnored = method.isIgnored || classDef.isIgnored,
-                            annotations = mutableSetOf<String>().apply {
-                                method.annotations.forEach { a -> this.add(a.name) }
-                            }
+                            annotations = classDef.annotationNames + method.annotationNames
                         )
                     } else null
                 }
@@ -45,8 +43,11 @@ private val TypeReference.name
 private val BasicAnnotation.name
     get() = type.drop(1).dropLast(1).replace('/', '.')
 
+private val Annotatable.annotationNames
+    get() = annotations.map { it.name }.toSet() - "kotlin.Metadata"
+
 private val Annotatable.isIgnored
-    get() = annotations.any { it.name == "org.junit.Ignore" }
+    get() = annotationNames.any { it == "org.junit.Ignore" }
 
 private val Annotatable.isTestMethod
-    get() = annotations.any { it.name == "org.junit.Test" }
+    get() = annotationNames.any { it == "org.junit.Test" }

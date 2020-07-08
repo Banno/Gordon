@@ -13,3 +13,10 @@ class AnnotatedTest {
 
     @LargeTest @FlakyTest @Test fun annotatedC() = Assert.assertEquals(1, 1)
 }
+
+@FlakyTest
+class AnnotatedTestClass {
+    @Test fun annotatedA() = Assert.assertEquals(1, 1)
+
+    @SmallTest @Test fun annotatedB() = Assert.assertEquals(1, 1)
+}

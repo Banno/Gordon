@@ -113,7 +113,7 @@ gordon {
     testTimeoutMillis.set(60_000)
 
     // Default is no filter
-    testFilter.set("ExampleTest.runThisMethod,RunThisWholeTestClass,com.example.runthispackage")
+    testFilter.set("ExampleTest.runThisMethod,RunThisWholeTestClass,com.example.runthispackage,com.example.RunTestsWithThisAnnotation")
 }
 ```
 
@@ -144,7 +144,7 @@ gordon {
 - `Manual` - create your own pools with specific devices - each test will run on one device from each pool
 
 ### Compatibility with Android extension
-Gordon is compatible with most testing options that can be configured in the Android extension, including `size`/`annotation`/`notAnnotation` arguments and disabling animations for tests.
+Gordon is compatible with most testing options that can be configured in the Android extension, including `size`/`annotation`/`notAnnotation` arguments and disabling animations for tests. Note that you can also specify annotations using Gordon's test filtering options instead of using instrumentation runner arguments.
 
 #### Example build.gradle.kts
 ```kotlin
@@ -184,6 +184,7 @@ There is a `--tests` commandline option that overrides the `testFilter` set in t
 - `./gradlew gordon --tests=ExampleTest.runThisMethod`
 - `./gradlew gordon --tests=RunThisWholeTestClass`
 - `./gradlew gordon --tests=ExampleTest.runThisMethod,com.example.runthispackage`
+- `./gradlew gordon --tests=com.example.RunTestsWithThisAnnotation`
 
 #### Retries
 If a retry quota is specified, Gordon will, after trying tests once, first retry any tests that were not able to run because of device issues, up to the specified quota per test case, and then retry any failing tests, up to the specified quota per test case. If multiple devices are available in a pool, a failing test will be retried on a different device from the one on which it originally failed.
