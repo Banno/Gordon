@@ -48,7 +48,7 @@ internal fun runTest(
                     TestResult.Failed(testTime, "Test timed out", device.serial)
                 }
 
-                shellOutput.endsWith("OK (1 test)") -> {
+                shellOutput.matches(Regex(".*OK \\([1-9][0-9]* tests?\\)$", RegexOption.DOT_MATCHES_ALL)) -> {
                     logger.lifecycle("$progress -> ${device.serial}: ${test.classAndMethodName}: PASSED")
                     TestResult.Passed(testTime)
                 }
