@@ -394,6 +394,36 @@ class TestDistributionTest {
         )
     }
 
+    @Test
+    fun shouldHandleMultipleTestsRunInSingleTestCase() {
+        val testSuite = listOf(
+            TestCase("A", "methodOne", false)
+        )
+
+        val device = anyJadbDevice()
+
+        device.mockOrderedTestResponses(TestResponse.MULTIPLE_PASS)
+
+        val pools = listOf(DevicePool("First", listOf(device)))
+
+        val actual = runAllTests(
+            dispatcher = Dispatchers.IO,
+            logger = mock(),
+            instrumentationPackage = "instrumentationPackage",
+            instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
+            allTestCases = testSuite,
+            allPools = pools,
+            retryQuota = 1,
+            testTimeoutMillis = 1000
+        ).unsafeRunSync()
+
+        actual shouldEqual mapOf(
+            "First" to mapOf(
+                TestCase("A", "methodOne", false) to Passed(1.337f)
+            )
+        )
+    }
+
     private fun anyInstrumentationRunnerOptions() = InstrumentationRunnerOptions(
         testInstrumentationRunner = "Runner",
         testInstrumentationRunnerArguments = emptyMap(),
@@ -402,6 +432,7 @@ class TestDistributionTest {
 
     private enum class TestResponse {
         PASS,
+        MULTIPLE_PASS,
         FAIL,
         EXCEPTION
     }
@@ -421,6 +452,7 @@ class TestDistributionTest {
 
                 when (response) {
                     TestResponse.PASS -> ByteArrayInputStream("OK (1 test)".toByteArray())
+                    TestResponse.MULTIPLE_PASS -> ByteArrayInputStream("Time: 1.337\n\nOK (42 tests)".toByteArray())
                     TestResponse.FAIL -> ByteArrayInputStream("FAILURE".toByteArray())
                     TestResponse.EXCEPTION -> null
                 }

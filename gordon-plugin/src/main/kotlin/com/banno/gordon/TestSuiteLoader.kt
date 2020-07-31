@@ -44,7 +44,7 @@ private val BasicAnnotation.name
     get() = type.drop(1).dropLast(1).replace('/', '.')
 
 private val Annotatable.annotationNames
-    get() = annotations.map { it.name }.toSet() - "kotlin.Metadata"
+    get() = annotations.map { it.name }.toSet() - "kotlin.Metadata" - "dalvik.annotation.MemberClasses"
 
 private val Annotatable.isIgnored
     get() = annotationNames.any { it == "org.junit.Ignore" }
