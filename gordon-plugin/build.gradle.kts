@@ -15,7 +15,7 @@ repositories {
 
 dependencies {
     implementation(gradleKotlinDsl())
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.1")
 
