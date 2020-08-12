@@ -188,7 +188,7 @@ private class TestDistributor(
                     val failedDevices = testResult.failures.map { it.deviceSerial }
 
                     !failedDevices.contains(deviceSerial) ||
-                            failedDevices.containsAll(deviceSerials)
+                        failedDevices.containsAll(deviceSerials)
                 }
 
                 else -> true

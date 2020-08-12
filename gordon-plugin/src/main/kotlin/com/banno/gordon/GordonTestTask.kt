@@ -174,8 +174,8 @@ internal fun TestCase.matchesFilter(filters: List<String>): Boolean {
         val filter = it.split('.')
 
         fullyQualifiedTestMethod.startsWith(it) ||
-                fullyQualifiedTestMethod.split('.').takeLast(filter.size) == filter ||
-                fullyQualifiedClassName.split('.').takeLast(filter.size) == filter
+            fullyQualifiedTestMethod.split('.').takeLast(filter.size) == filter ||
+            fullyQualifiedClassName.split('.').takeLast(filter.size) == filter
     }
 }
 

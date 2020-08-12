@@ -1,7 +1,7 @@
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
-    id("com.gradle.plugin-publish") version "0.11.0"
+    id("com.gradle.plugin-publish") version "0.12.0"
     `maven-publish`
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
@@ -15,20 +15,20 @@ repositories {
 
 dependencies {
     implementation(gradleKotlinDsl())
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.6.12")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.1")
 
     val androidGradlePluginVersion: String by project
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
-    implementation("com.android.tools.build:bundletool:0.15.0")
+    implementation("com.android.tools.build:bundletool:1.0.0")
     implementation("org.smali:dexlib2:2.4.0")
     implementation("com.github.vidstige:jadb:v1.1.0")
 
-    implementation("io.arrow-kt:arrow-core-data:0.10.4")
-    implementation("io.arrow-kt:arrow-fx:0.10.4")
+    implementation("io.arrow-kt:arrow-core-data:0.10.5")
+    implementation("io.arrow-kt:arrow-fx:0.10.5")
 
-    testImplementation("junit:junit:4.12")
+    testImplementation("junit:junit:4.13")
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
 }
 
@@ -37,7 +37,7 @@ tasks.withType<Test>().configureEach {
     testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 }
 
-val aapt2Version = "4.0.0-6051327"
+val aapt2Version = "4.0.1-6197926"
 val jar = tasks.named<Jar>("jar")
 mapOf(
     "linux" to "linux/",
