@@ -33,6 +33,13 @@ internal abstract class GordonTestTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     internal val applicationAab: RegularFileProperty = project.objects.fileProperty()
 
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    internal val signingKeystoreFile: RegularFileProperty = project.objects.fileProperty()
+
+    @get:Input
+    internal val signingConfigCredentials: Property<SigningConfigCredentials> = project.objects.property()
+
     @get:Input
     internal val applicationPackage: Property<String> = project.objects.property()
 
@@ -85,6 +92,7 @@ internal abstract class GordonTestTask : DefaultTask() {
 
     init {
         applicationAab.convention { PLACEHOLDER_APPLICATION_AAB }
+        signingKeystoreFile.convention { PLACEHOLDER_SIGNING_KEYSTORE }
         applicationPackage.convention(PLACEHOLDER_APPLICATION_PACKAGE)
         commandlineTestFilter.convention("")
     }
@@ -115,6 +123,13 @@ internal abstract class GordonTestTask : DefaultTask() {
             val applicationAab = applicationAab.get().asFile.takeUnless { it == PLACEHOLDER_APPLICATION_AAB }
             val applicationPackage = applicationPackage.get().takeUnless { it == PLACEHOLDER_APPLICATION_PACKAGE }
 
+            val signingConfig = SigningConfig(
+                storeFile = signingKeystoreFile.get().asFile.takeUnless { it == PLACEHOLDER_SIGNING_KEYSTORE },
+                storePassword = signingConfigCredentials.get().storePassword,
+                keyAlias = signingConfigCredentials.get().keyAlias,
+                keyPassword = signingConfigCredentials.get().keyPassword
+            )
+
             pools.flatMap { it.devices }.reinstall(
                 dispatcher = Dispatchers.Default,
                 logger = logger,
@@ -122,6 +137,7 @@ internal abstract class GordonTestTask : DefaultTask() {
                 instrumentationPackage = instrumentationPackage.get(),
                 dynamicModule = project.name.takeIf { project.androidPluginType() == AndroidPluginType.DYNAMIC_FEATURE },
                 applicationAab = applicationAab,
+                signingConfig = signingConfig,
                 instrumentationApk = instrumentationApk.get().asFile,
                 installTimeoutMillis = installTimeoutMillis.get()
             ).bind()
@@ -180,4 +196,5 @@ internal fun TestCase.matchesFilter(filters: List<String>): Boolean {
 }
 
 private val PLACEHOLDER_APPLICATION_AAB = File.createTempFile("PLACEHOLDER_APPLICATION_AAB", null)
+private val PLACEHOLDER_SIGNING_KEYSTORE = File.createTempFile("PLACEHOLDER_SIGNING_KEYSTORE", null)
 private const val PLACEHOLDER_APPLICATION_PACKAGE = "PLACEHOLDER_APPLICATION_PACKAGE"

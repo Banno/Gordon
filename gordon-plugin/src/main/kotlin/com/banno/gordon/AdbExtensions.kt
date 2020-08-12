@@ -94,14 +94,20 @@ internal fun JadbDevice.installApkSet(timeoutMillis: Long, apkSet: File, dynamic
     }
 }
 
-internal fun buildApkSet(aab: File) = IO {
+internal fun buildApkSet(aab: File, signingConfig: SigningConfig) = IO {
     File.createTempFile(aab.nameWithoutExtension, ".apks").also {
         BuildApksCommand.fromFlags(
             FlagParser().parse(
-                "build-apks",
-                "--bundle=${aab.path}",
-                "--output=${it.path}",
-                "--overwrite"
+                *listOfNotNull(
+                    "build-apks",
+                    "--bundle=${aab.path}",
+                    "--output=${it.path}",
+                    "--overwrite",
+                    signingConfig.storeFile?.let { "--ks=$it" },
+                    signingConfig.storePassword?.let { "--ks-pass=pass:$it" },
+                    signingConfig.keyAlias?.let { "--ks-key-alias=$it" },
+                    signingConfig.keyPassword?.let { "--key-pass=pass:$it" }
+                ).toTypedArray()
             ),
             DdmlibAdbServer.getInstance()
         ).execute()
@@ -137,11 +143,12 @@ internal fun List<JadbDevice>.reinstall(
     instrumentationPackage: String,
     dynamicModule: String?,
     applicationAab: File?,
+    signingConfig: SigningConfig,
     instrumentationApk: File,
     installTimeoutMillis: Long
 ) = IO {
     runBlocking {
-        val applicationApkSet = applicationAab?.let(::buildApkSet)?.unsafeRunSync()
+        val applicationApkSet = applicationAab?.let { buildApkSet(it, signingConfig) }?.unsafeRunSync()
 
         map { device ->
             async(context = dispatcher, start = CoroutineStart.LAZY) {

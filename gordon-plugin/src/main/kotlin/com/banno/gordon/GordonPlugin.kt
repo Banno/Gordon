@@ -63,6 +63,19 @@ class GordonPlugin : Plugin<Project> {
                     this.applicationPackage.apply { set(appVariant.applicationId) }.finalizeValue()
                 }
 
+                appVariant?.signingConfig?.storeFile?.let {
+                    this.signingKeystoreFile.apply { set(it) }.finalizeValue()
+                }
+                this.signingConfigCredentials.apply {
+                    set(
+                        SigningConfigCredentials(
+                            storePassword = appVariant?.signingConfig?.storePassword,
+                            keyAlias = appVariant?.signingConfig?.keyAlias,
+                            keyPassword = appVariant?.signingConfig?.keyPassword
+                        )
+                    )
+                }.finalizeValue()
+
                 this.instrumentationApk.apply { set(testVariant.apkOutputFile()) }.finalizeValue()
                 this.instrumentationPackage.apply { set(testVariant.applicationId) }.finalizeValue()
                 this.androidInstrumentationRunnerOptions.apply { set(instrumentationRunnerOptions) }.finalizeValue()
