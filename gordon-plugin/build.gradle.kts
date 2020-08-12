@@ -37,7 +37,7 @@ tasks.withType<Test>().configureEach {
     testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 }
 
-val aapt2Version = "4.0.0-6051327"
+val aapt2Version = "4.0.1-6197926"
 val jar = tasks.named<Jar>("jar")
 mapOf(
     "linux" to "linux/",
