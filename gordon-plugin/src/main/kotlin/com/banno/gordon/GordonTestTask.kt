@@ -7,6 +7,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
@@ -21,30 +22,33 @@ import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.property
 import se.vidstige.jadb.JadbConnection
 import java.io.File
+import javax.inject.Inject
 
 @CacheableTask
-internal abstract class GordonTestTask : DefaultTask() {
+internal abstract class GordonTestTask @Inject constructor(
+    objects: ObjectFactory
+) : DefaultTask() {
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
-    internal val instrumentationApk: RegularFileProperty = project.objects.fileProperty()
+    internal val instrumentationApk: RegularFileProperty = objects.fileProperty()
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
-    internal val applicationAab: RegularFileProperty = project.objects.fileProperty()
+    internal val applicationAab: RegularFileProperty = objects.fileProperty()
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
-    internal val signingKeystoreFile: RegularFileProperty = project.objects.fileProperty()
+    internal val signingKeystoreFile: RegularFileProperty = objects.fileProperty()
 
     @get:Input
-    internal val signingConfigCredentials: Property<SigningConfigCredentials> = project.objects.property()
+    internal val signingConfigCredentials: Property<SigningConfigCredentials> = objects.property()
 
     @get:Input
-    internal val applicationPackage: Property<String> = project.objects.property()
+    internal val applicationPackage: Property<String> = objects.property()
 
     @get:Input
-    internal val instrumentationPackage: Property<String> = project.objects.property()
+    internal val instrumentationPackage: Property<String> = objects.property()
 
     @get:Input
     internal val instrumentationRunnerOptions: InstrumentationRunnerOptions
@@ -74,12 +78,11 @@ internal abstract class GordonTestTask : DefaultTask() {
     private val testTimeoutMillis = project.extensions.getByType<GordonExtension>().testTimeoutMillis
 
     @Option(option = "tests", description = "Comma-separated packages, classes, methods, or annotations.")
-    val commandlineTestFilter: Property<String> = project.objects.property()
+    val commandlineTestFilter: Property<String> = objects.property()
 
     private val extensionTestFilter = project.extensions.getByType<GordonExtension>().testFilter
 
-    internal val androidInstrumentationRunnerOptions: Property<InstrumentationRunnerOptions> =
-        project.objects.property()
+    internal val androidInstrumentationRunnerOptions: Property<InstrumentationRunnerOptions> = objects.property()
 
     private val extensionTestInstrumentationRunner =
         project.extensions.getByType<GordonExtension>().testInstrumentationRunner
