@@ -55,23 +55,6 @@ internal abstract class GordonTestTask @Inject constructor(
     internal val instrumentationPackage: Property<String> = objects.property()
 
     @get:Input
-    internal val instrumentationRunnerOptions: InstrumentationRunnerOptions
-        get() {
-            val options = androidInstrumentationRunnerOptions.get()
-            val extensionRunner = extensionTestInstrumentationRunner.get()
-
-            return if (extensionRunner.isNotBlank()) options.copy(testInstrumentationRunner = extensionRunner)
-            else options
-        }
-
-    @get:Input
-    internal val testFilters: List<String>
-        get() = (commandlineTestFilter.get().takeIf { it.isNotBlank() } ?: extensionTestFilter.get())
-            .split(',')
-            .filter { it.isNotBlank() }
-            .map { it.replace('#', '.') }
-
-    @get:Input
     internal val poolingStrategy: Property<PoolingStrategy> = objects.property()
 
     @get:Input
@@ -88,6 +71,22 @@ internal abstract class GordonTestTask @Inject constructor(
     val commandlineTestFilter: Property<String> = objects.property()
 
     internal val androidInstrumentationRunnerOptions: Property<InstrumentationRunnerOptions> = objects.property()
+
+    @get:Input
+    internal val testFilters: Provider<List<String>> =
+        commandlineTestFilter.zip(extensionTestFilter) { commandlineTestFilter, extensionTestFilter ->
+            (commandlineTestFilter.takeIf { it.isNotBlank() } ?: extensionTestFilter)
+                .split(',')
+                .filter { it.isNotBlank() }
+                .map { it.replace('#', '.') }
+        }
+
+    @get:Input
+    internal val instrumentationRunnerOptions: Provider<InstrumentationRunnerOptions> =
+        androidInstrumentationRunnerOptions.zip(extensionTestInstrumentationRunner) { options, extensionRunner ->
+            if (extensionRunner.isNotBlank()) options.copy(testInstrumentationRunner = extensionRunner)
+            else options
+        }
 
     @OutputDirectory
     val testResultsDirectory: Provider<Directory> = projectLayout.buildDirectory.dir("test-results/$name")
@@ -115,7 +114,7 @@ internal abstract class GordonTestTask @Inject constructor(
                 tabletShortestWidthDp.get().takeIf { it > -1 }
             ).bind()
             val testCases = loadTestSuite(instrumentationApk.get().asFile).bind()
-                .filter { it.matchesFilter(testFilters) }
+                .filter { it.matchesFilter(testFilters.get()) }
 
             when {
                 testCases.isEmpty() -> raiseError<Unit>(IllegalStateException("No test cases found")).bind()
@@ -153,7 +152,7 @@ internal abstract class GordonTestTask @Inject constructor(
                 dispatcher = Dispatchers.Default,
                 logger = logger,
                 instrumentationPackage = instrumentationPackage.get(),
-                instrumentationRunnerOptions = instrumentationRunnerOptions,
+                instrumentationRunnerOptions = instrumentationRunnerOptions.get(),
                 allTestCases = testCases,
                 allPools = pools,
                 retryQuota = retryQuota.get(),
