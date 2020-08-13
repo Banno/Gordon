@@ -19,7 +19,6 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
-import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.property
 import se.vidstige.jadb.JadbConnection
 import java.io.File
@@ -73,24 +72,22 @@ internal abstract class GordonTestTask @Inject constructor(
             .map { it.replace('#', '.') }
 
     @get:Input
-    internal val poolingStrategy = project.extensions.getByType<GordonExtension>().poolingStrategy
+    internal val poolingStrategy: Property<PoolingStrategy> = objects.property()
 
     @get:Input
-    internal val tabletShortestWidthDp = project.extensions.getByType<GordonExtension>().tabletShortestWidthDp
+    internal val tabletShortestWidthDp: Property<Int> = objects.property()
 
-    private val retryQuota = project.extensions.getByType<GordonExtension>().retryQuota
-    private val installTimeoutMillis = project.extensions.getByType<GordonExtension>().installTimeoutMillis
-    private val testTimeoutMillis = project.extensions.getByType<GordonExtension>().testTimeoutMillis
+    internal val retryQuota: Property<Int> = objects.property()
+    internal val installTimeoutMillis: Property<Long> = objects.property()
+    internal val testTimeoutMillis: Property<Long> = objects.property()
+
+    internal val extensionTestFilter: Property<String> = objects.property()
+    internal val extensionTestInstrumentationRunner: Property<String> = objects.property()
 
     @Option(option = "tests", description = "Comma-separated packages, classes, methods, or annotations.")
     val commandlineTestFilter: Property<String> = objects.property()
 
-    private val extensionTestFilter = project.extensions.getByType<GordonExtension>().testFilter
-
     internal val androidInstrumentationRunnerOptions: Property<InstrumentationRunnerOptions> = objects.property()
-
-    private val extensionTestInstrumentationRunner =
-        project.extensions.getByType<GordonExtension>().testInstrumentationRunner
 
     @OutputDirectory
     val testResultsDirectory: Provider<Directory> = projectLayout.buildDirectory.dir("test-results/$name")
