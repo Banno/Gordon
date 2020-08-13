@@ -5,8 +5,10 @@ import arrow.fx.extensions.fx
 import kotlinx.coroutines.Dispatchers
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
@@ -17,82 +19,85 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
-import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.property
 import se.vidstige.jadb.JadbConnection
 import java.io.File
+import javax.inject.Inject
 
 @CacheableTask
-internal abstract class GordonTestTask : DefaultTask() {
+internal abstract class GordonTestTask @Inject constructor(
+    objects: ObjectFactory,
+    projectLayout: ProjectLayout
+) : DefaultTask() {
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
-    internal val instrumentationApk: RegularFileProperty = project.objects.fileProperty()
+    internal val instrumentationApk: RegularFileProperty = objects.fileProperty()
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
-    internal val applicationAab: RegularFileProperty = project.objects.fileProperty()
+    internal val applicationAab: RegularFileProperty = objects.fileProperty()
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
-    internal val signingKeystoreFile: RegularFileProperty = project.objects.fileProperty()
+    internal val signingKeystoreFile: RegularFileProperty = objects.fileProperty()
 
     @get:Input
-    internal val signingConfigCredentials: Property<SigningConfigCredentials> = project.objects.property()
+    internal val signingConfigCredentials: Property<SigningConfigCredentials> = objects.property()
 
     @get:Input
-    internal val applicationPackage: Property<String> = project.objects.property()
+    internal val dynamicFeatureModuleName: Property<String> = objects.property()
 
     @get:Input
-    internal val instrumentationPackage: Property<String> = project.objects.property()
+    internal val applicationPackage: Property<String> = objects.property()
 
     @get:Input
-    internal val instrumentationRunnerOptions: InstrumentationRunnerOptions
-        get() {
-            val options = androidInstrumentationRunnerOptions.get()
-            val extensionRunner = extensionTestInstrumentationRunner.get()
+    internal val instrumentationPackage: Property<String> = objects.property()
 
-            return if (extensionRunner.isNotBlank()) options.copy(testInstrumentationRunner = extensionRunner)
-            else options
+    @get:Input
+    internal val poolingStrategy: Property<PoolingStrategy> = objects.property()
+
+    @get:Input
+    internal val tabletShortestWidthDp: Property<Int> = objects.property()
+
+    internal val retryQuota: Property<Int> = objects.property()
+    internal val installTimeoutMillis: Property<Long> = objects.property()
+    internal val testTimeoutMillis: Property<Long> = objects.property()
+
+    internal val extensionTestFilter: Property<String> = objects.property()
+    internal val extensionTestInstrumentationRunner: Property<String> = objects.property()
+
+    @Option(option = "tests", description = "Comma-separated packages, classes, methods, or annotations.")
+    val commandlineTestFilter: Property<String> = objects.property()
+
+    internal val androidInstrumentationRunnerOptions: Property<InstrumentationRunnerOptions> = objects.property()
+
+    @get:Input
+    internal val testFilters: Provider<List<String>> =
+        commandlineTestFilter.zip(extensionTestFilter) { commandlineTestFilter, extensionTestFilter ->
+            (commandlineTestFilter.takeIf { it.isNotBlank() } ?: extensionTestFilter)
+                .split(',')
+                .filter { it.isNotBlank() }
+                .map { it.replace('#', '.') }
         }
 
     @get:Input
-    internal val testFilters: List<String>
-        get() = (commandlineTestFilter.get().takeIf { it.isNotBlank() } ?: extensionTestFilter.get())
-            .split(',')
-            .filter { it.isNotBlank() }
-            .map { it.replace('#', '.') }
-
-    @get:Input
-    internal val poolingStrategy = project.extensions.getByType<GordonExtension>().poolingStrategy
-
-    @get:Input
-    internal val tabletShortestWidthDp = project.extensions.getByType<GordonExtension>().tabletShortestWidthDp
-
-    private val retryQuota = project.extensions.getByType<GordonExtension>().retryQuota
-    private val installTimeoutMillis = project.extensions.getByType<GordonExtension>().installTimeoutMillis
-    private val testTimeoutMillis = project.extensions.getByType<GordonExtension>().testTimeoutMillis
-
-    @Option(option = "tests", description = "Comma-separated packages, classes, methods, or annotations.")
-    val commandlineTestFilter: Property<String> = project.objects.property()
-
-    private val extensionTestFilter = project.extensions.getByType<GordonExtension>().testFilter
-
-    internal val androidInstrumentationRunnerOptions: Property<InstrumentationRunnerOptions> =
-        project.objects.property()
-
-    private val extensionTestInstrumentationRunner =
-        project.extensions.getByType<GordonExtension>().testInstrumentationRunner
+    internal val instrumentationRunnerOptions: Provider<InstrumentationRunnerOptions> =
+        androidInstrumentationRunnerOptions.zip(extensionTestInstrumentationRunner) { options, extensionRunner ->
+            if (extensionRunner.isNotBlank()) options.copy(testInstrumentationRunner = extensionRunner)
+            else options
+        }
 
     @OutputDirectory
-    val testResultsDirectory: Provider<Directory> = project.layout.buildDirectory.dir("test-results/$name")
+    val testResultsDirectory: Provider<Directory> = projectLayout.buildDirectory.dir("test-results/$name")
 
     @OutputDirectory
-    val reportDirectory: Provider<Directory> = project.layout.buildDirectory.dir("reports/$name")
+    val reportDirectory: Provider<Directory> = projectLayout.buildDirectory.dir("reports/$name")
 
     init {
         applicationAab.convention { PLACEHOLDER_APPLICATION_AAB }
         signingKeystoreFile.convention { PLACEHOLDER_SIGNING_KEYSTORE }
+        dynamicFeatureModuleName.convention(PLACEHOLDER_DYNAMIC_MODULE_NAME)
         applicationPackage.convention(PLACEHOLDER_APPLICATION_PACKAGE)
         commandlineTestFilter.convention("")
     }
@@ -109,7 +114,7 @@ internal abstract class GordonTestTask : DefaultTask() {
                 tabletShortestWidthDp.get().takeIf { it > -1 }
             ).bind()
             val testCases = loadTestSuite(instrumentationApk.get().asFile).bind()
-                .filter { it.matchesFilter(testFilters) }
+                .filter { it.matchesFilter(testFilters.get()) }
 
             when {
                 testCases.isEmpty() -> raiseError<Unit>(IllegalStateException("No test cases found")).bind()
@@ -122,6 +127,7 @@ internal abstract class GordonTestTask : DefaultTask() {
 
             val applicationAab = applicationAab.get().asFile.takeUnless { it == PLACEHOLDER_APPLICATION_AAB }
             val applicationPackage = applicationPackage.get().takeUnless { it == PLACEHOLDER_APPLICATION_PACKAGE }
+            val dynamicModuleName = dynamicFeatureModuleName.get().takeUnless { it == PLACEHOLDER_DYNAMIC_MODULE_NAME }
 
             val signingConfig = SigningConfig(
                 storeFile = signingKeystoreFile.get().asFile.takeUnless { it == PLACEHOLDER_SIGNING_KEYSTORE },
@@ -135,7 +141,7 @@ internal abstract class GordonTestTask : DefaultTask() {
                 logger = logger,
                 applicationPackage = applicationPackage,
                 instrumentationPackage = instrumentationPackage.get(),
-                dynamicModule = project.name.takeIf { project.androidPluginType() == AndroidPluginType.DYNAMIC_FEATURE },
+                dynamicModule = dynamicModuleName,
                 applicationAab = applicationAab,
                 signingConfig = signingConfig,
                 instrumentationApk = instrumentationApk.get().asFile,
@@ -146,7 +152,7 @@ internal abstract class GordonTestTask : DefaultTask() {
                 dispatcher = Dispatchers.Default,
                 logger = logger,
                 instrumentationPackage = instrumentationPackage.get(),
-                instrumentationRunnerOptions = instrumentationRunnerOptions,
+                instrumentationRunnerOptions = instrumentationRunnerOptions.get(),
                 allTestCases = testCases,
                 allPools = pools,
                 retryQuota = retryQuota.get(),
@@ -197,4 +203,5 @@ internal fun TestCase.matchesFilter(filters: List<String>): Boolean {
 
 private val PLACEHOLDER_APPLICATION_AAB = File.createTempFile("PLACEHOLDER_APPLICATION_AAB", null)
 private val PLACEHOLDER_SIGNING_KEYSTORE = File.createTempFile("PLACEHOLDER_SIGNING_KEYSTORE", null)
+private const val PLACEHOLDER_DYNAMIC_MODULE_NAME = "PLACEHOLDER_DYNAMIC_MODULE_NAME"
 private const val PLACEHOLDER_APPLICATION_PACKAGE = "PLACEHOLDER_APPLICATION_PACKAGE"

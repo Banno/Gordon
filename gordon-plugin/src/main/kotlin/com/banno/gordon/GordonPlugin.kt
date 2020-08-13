@@ -21,7 +21,7 @@ class GordonPlugin : Plugin<Project> {
         val androidPluginType = project.androidPluginType()
             ?: error("Gordon plugin must be applied after applying the application, library, or dynamic-feature Android plugin")
 
-        project.extensions.create<GordonExtension>("gordon")
+        val gordonExtension = project.extensions.create<GordonExtension>("gordon")
 
         val androidExtension = project.extensions.getByType<TestedExtension>()
 
@@ -76,8 +76,22 @@ class GordonPlugin : Plugin<Project> {
                     )
                 }.finalizeValue()
 
+                if (androidPluginType == AndroidPluginType.DYNAMIC_FEATURE) {
+                    this.dynamicFeatureModuleName.apply { set(project.name) }.finalizeValue()
+                }
+
                 this.instrumentationApk.apply { set(testVariant.apkOutputFile()) }.finalizeValue()
                 this.instrumentationPackage.apply { set(testVariant.applicationId) }.finalizeValue()
+
+                this.poolingStrategy.apply { set(gordonExtension.poolingStrategy) }.finalizeValue()
+                this.tabletShortestWidthDp.apply { set(gordonExtension.tabletShortestWidthDp) }.finalizeValue()
+                this.retryQuota.apply { set(gordonExtension.retryQuota) }.finalizeValue()
+                this.installTimeoutMillis.apply { set(gordonExtension.installTimeoutMillis) }.finalizeValue()
+                this.testTimeoutMillis.apply { set(gordonExtension.testTimeoutMillis) }.finalizeValue()
+                this.extensionTestFilter.apply { set(gordonExtension.testFilter) }.finalizeValue()
+                this.extensionTestInstrumentationRunner.apply { set(gordonExtension.testInstrumentationRunner) }
+                    .finalizeValue()
+
                 this.androidInstrumentationRunnerOptions.apply { set(instrumentationRunnerOptions) }.finalizeValue()
             }
         }
