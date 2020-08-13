@@ -76,6 +76,10 @@ class GordonPlugin : Plugin<Project> {
                     )
                 }.finalizeValue()
 
+                if (androidPluginType == AndroidPluginType.DYNAMIC_FEATURE) {
+                    this.dynamicFeatureModuleName.apply { set(project.name) }.finalizeValue()
+                }
+
                 this.instrumentationApk.apply { set(testVariant.apkOutputFile()) }.finalizeValue()
                 this.instrumentationPackage.apply { set(testVariant.applicationId) }.finalizeValue()
                 this.androidInstrumentationRunnerOptions.apply { set(instrumentationRunnerOptions) }.finalizeValue()
