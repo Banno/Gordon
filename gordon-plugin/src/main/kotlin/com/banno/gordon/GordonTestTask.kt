@@ -5,6 +5,7 @@ import arrow.fx.extensions.fx
 import kotlinx.coroutines.Dispatchers
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.model.ObjectFactory
@@ -26,7 +27,8 @@ import javax.inject.Inject
 
 @CacheableTask
 internal abstract class GordonTestTask @Inject constructor(
-    objects: ObjectFactory
+    objects: ObjectFactory,
+    projectLayout: ProjectLayout
 ) : DefaultTask() {
 
     @get:InputFile
@@ -88,10 +90,10 @@ internal abstract class GordonTestTask @Inject constructor(
         project.extensions.getByType<GordonExtension>().testInstrumentationRunner
 
     @OutputDirectory
-    val testResultsDirectory: Provider<Directory> = project.layout.buildDirectory.dir("test-results/$name")
+    val testResultsDirectory: Provider<Directory> = projectLayout.buildDirectory.dir("test-results/$name")
 
     @OutputDirectory
-    val reportDirectory: Provider<Directory> = project.layout.buildDirectory.dir("reports/$name")
+    val reportDirectory: Provider<Directory> = projectLayout.buildDirectory.dir("reports/$name")
 
     init {
         applicationAab.convention { PLACEHOLDER_APPLICATION_AAB }
