@@ -30,9 +30,10 @@ jobs:
     - name: Create Tag
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        git tag -a ${{ env.newTag }} -m ${{ env.newTag }}
-        git push origin ${{ env.newTag }}
+      uses: simpleactions/create-tag@v1.0.0
+      with:
+        tag: ${{ env.newTag }}
+        message: ${{ env.newTag }}
 
     - name: Generate Changelog
       id: generate_changelog
