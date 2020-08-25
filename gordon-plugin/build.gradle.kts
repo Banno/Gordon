@@ -1,7 +1,7 @@
 plugins {
     `kotlin-dsl`
     `java-gradle-plugin`
-    id("com.gradle.plugin-publish") version "0.12.0"
+    id("com.gradle.plugin-publish")
     `maven-publish`
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
@@ -15,9 +15,9 @@ repositories {
 
 dependencies {
     implementation(gradleKotlinDsl())
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.2")
 
     val androidGradlePluginVersion: String by project
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
