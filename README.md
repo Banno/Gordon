@@ -1,6 +1,6 @@
 # Gordon
 
-![Latest release](https://img.shields.io/github/v/release/Banno/Gordon)
+[![Latest release](https://img.shields.io/github/v/release/Banno/Gordon)](http://github.com/Banno/Gordon/releases/latest)
 
 Gordon is an Android instrumentation test runner designed for speed, simplicity, and reliability. We built it because neither [Spoon](https://github.com/square/spoon) nor [Fork](https://github.com/shazam/fork) were fast enough nor reliable enough for us, and in attempts to fork those libraries we found them to be too old and complicated to be worth modifying. So we wrote Gordon from the ground up, using modern Gradle functionality and Kotlin coroutines.
 
