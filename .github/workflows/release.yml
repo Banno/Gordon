@@ -11,6 +11,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.BANNO_AUTOBOT_GITHUB_TOKEN }}
 
     - id: get_previous_release
       uses: thebritican/fetch-latest-release@v2.0.0
