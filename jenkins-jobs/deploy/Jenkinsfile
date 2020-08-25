@@ -1,2 +1,0 @@
-library('android-shared')
-publishProjectAndIncrementVersion(':gordon-plugin:assemble', 'publishPlugins', 'gordon-plugin/gradle.properties', true, true)
