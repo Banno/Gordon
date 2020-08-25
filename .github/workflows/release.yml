@@ -1,0 +1,67 @@
+name: Draft Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Draft Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - id: get_previous_release
+      uses: thebritican/fetch-latest-release@v2.0.0
+
+    - id: get_new_version
+      uses: christian-draeger/read-properties@1.0.1
+      with:
+        path: 'gordon-plugin/gradle.properties'
+        property: 'version'
+
+    - run: |
+        PREVIOUS_TAG=${{ steps.get_previous_release.outputs.tag_name }}
+        echo "::set-env name=previousTag::$PREVIOUS_TAG"
+        NEW_TAG=${{ steps.get_new_version.outputs.value }}
+        echo "::set-env name=newTag::$NEW_TAG"
+
+    - name: Create Tag
+      run: |
+        git tag -a ${{ env.newTag }} -m ${{ env.newTag }}
+        git push origin ${{ env.newTag }}
+
+    - name: Generate Changelog
+      id: generate_changelog
+      uses: nblagoev/pull-release-notes-action@v1
+      with:
+        base-ref: ${{ env.previousTag }}
+        head-ref: ${{ env.newTag }}
+
+    - name: Draft Release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ env.newTag }}
+        release_name: ${{ env.newTag }}
+        body: ${{steps.generate_changelog.outputs.result}}
+        draft: true
+
+    - id: next_version
+      uses: jessicalostinspace/bump-semantic-version-action@v1.0.1
+      with:
+        semantic-version: ${{ env.newTag }}
+        version-type: 'PATCH'
+
+    - name: Bump Version
+      uses: christian-draeger/write-properties@1.0.1
+      with:
+        path: 'gordon-plugin/gradle.properties'
+        property: 'version'
+        value: ${{steps.next_version.outputs.bumped-semantic-version}}
+
+    - name: Commit Version Bump
+      run: |
+        git add gordon-plugin/gradle.properties
+        git commit -m "Automatic patch version bump"
+        git push
