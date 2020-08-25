@@ -24,7 +24,6 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk7"))
     implementation("androidx.appcompat:appcompat:1.2.0")
     androidTestImplementation("androidx.test:runner:1.2.0")
 }
