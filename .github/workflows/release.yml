@@ -18,8 +18,8 @@ jobs:
     - id: get_new_version
       uses: christian-draeger/read-properties@1.0.1
       with:
-        path: 'gordon-plugin/gradle.properties'
-        property: 'version'
+        path: gordon-plugin/gradle.properties
+        property: version
 
     - run: |
         PREVIOUS_TAG=${{ steps.get_previous_release.outputs.tag_name }}
@@ -28,19 +28,26 @@ jobs:
         echo "::set-env name=newTag::$NEW_TAG"
 
     - name: Create Tag
-      run: |
-        git tag -a ${{ env.newTag }} -m ${{ env.newTag }}
-        git push origin ${{ env.newTag }}
+      uses: simpleactions/create-tag@v1.0.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag: ${{ env.newTag }}
+        message: ${{ env.newTag }}
 
     - name: Generate Changelog
       id: generate_changelog
-      uses: nblagoev/pull-release-notes-action@v1
+      uses: nblagoev/pull-release-notes-action@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         base-ref: ${{ env.previousTag }}
         head-ref: ${{ env.newTag }}
 
     - name: Draft Release
       uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ env.newTag }}
         release_name: ${{ env.newTag }}
@@ -51,17 +58,19 @@ jobs:
       uses: jessicalostinspace/bump-semantic-version-action@v1.0.1
       with:
         semantic-version: ${{ env.newTag }}
-        version-type: 'PATCH'
+        version-type: PATCH
 
     - name: Bump Version
       uses: christian-draeger/write-properties@1.0.1
       with:
-        path: 'gordon-plugin/gradle.properties'
-        property: 'version'
+        path: gordon-plugin/gradle.properties
+        property: version
         value: ${{steps.next_version.outputs.bumped-semantic-version}}
 
     - name: Commit Version Bump
-      run: |
-        git add gordon-plugin/gradle.properties
-        git commit -m "Automatic patch version bump"
-        git push
+      uses: EndBug/add-and-commit@v4.4.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        add: gordon-plugin/gradle.properties
+        message: Bump version to ${{steps.next_version.outputs.bumped-semantic-version}}
