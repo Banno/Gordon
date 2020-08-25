@@ -1,7 +1,6 @@
 package com.banno.android.gordontest
 
 import org.junit.Assert
-import org.junit.Assume
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,11 +20,10 @@ class ParameterizedTest(private val parameter: Any) {
         }
     }
 
-    @Test fun parameterizedA() = Assert.assertEquals(1, 1)
-    @Test fun parameterizedB() = Assume.assumeTrue(1 == parameter)
-    @Test fun parameterizedC() = Assert.assertTrue(1 == parameter)
+    @Test fun parameterizedPass() = Assert.assertEquals(1, 1)
+    @Test fun parameterizedFail() = Assert.assertEquals(1, parameter)
 
     @Ignore
     @Test
-    fun parameterizedD() = Assert.assertEquals(1, 1)
+    fun parameterizedIgnore() = Assert.assertEquals(1, 1)
 }

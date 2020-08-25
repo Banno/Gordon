@@ -10,5 +10,5 @@ class StandardTest {
 
     @Ignore
     @Test
-    fun standardC() = Assert.assertEquals(1, 1)
+    fun standardIgnore() = Assert.assertEquals(1, 1)
 }

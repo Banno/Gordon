@@ -39,13 +39,12 @@ class TestSuiteLoaderTest {
             TestCase("com.banno.android.gordontest.InheritedTest", "interfaceA", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.InheritedTest", "interfaceB", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.InheritedTest", "interfaceC", false, setOf("org.junit.Test")),
-            TestCase("com.banno.android.gordontest.ParameterizedTest", "parameterizedA", false, setOf("org.junit.runner.RunWith", "org.junit.Test")),
-            TestCase("com.banno.android.gordontest.ParameterizedTest", "parameterizedB", false, setOf("org.junit.runner.RunWith", "org.junit.Test")),
-            TestCase("com.banno.android.gordontest.ParameterizedTest", "parameterizedC", false, setOf("org.junit.runner.RunWith", "org.junit.Test")),
-            TestCase("com.banno.android.gordontest.ParameterizedTest", "parameterizedD", true, setOf("org.junit.runner.RunWith", "org.junit.Ignore", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.ParameterizedTest", "parameterizedFail", false, setOf("org.junit.runner.RunWith", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.ParameterizedTest", "parameterizedIgnore", true, setOf("org.junit.runner.RunWith", "org.junit.Ignore", "org.junit.Test")),
+            TestCase("com.banno.android.gordontest.ParameterizedTest", "parameterizedPass", false, setOf("org.junit.runner.RunWith", "org.junit.Test")),
             TestCase("com.banno.android.gordontest.StandardTest", "standardA", false, setOf("org.junit.Test")),
             TestCase("com.banno.android.gordontest.StandardTest", "standardB", false, setOf("org.junit.Test")),
-            TestCase("com.banno.android.gordontest.StandardTest", "standardC", true, setOf("org.junit.Ignore", "org.junit.Test"))
+            TestCase("com.banno.android.gordontest.StandardTest", "standardIgnore", true, setOf("org.junit.Ignore", "org.junit.Test"))
         )
         /**
          * Purposefully ignoring:
