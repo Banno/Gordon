@@ -21,7 +21,7 @@ dependencies {
 
     val androidGradlePluginVersion: String by project
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
-    implementation("com.android.tools.build:bundletool:1.0.0")
+    implementation("com.android.tools.build:bundletool:1.2.0")
     implementation("org.smali:dexlib2:2.4.0")
     implementation("com.github.vidstige:jadb:v1.1.0")
 
