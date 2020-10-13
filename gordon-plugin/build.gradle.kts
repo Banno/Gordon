@@ -25,8 +25,8 @@ dependencies {
     implementation("org.smali:dexlib2:2.4.0")
     implementation("com.github.vidstige:jadb:v1.1.0")
 
-    implementation("io.arrow-kt:arrow-core-data:0.10.5")
-    implementation("io.arrow-kt:arrow-fx:0.10.5")
+    implementation("io.arrow-kt:arrow-core-data:0.11.0")
+    implementation("io.arrow-kt:arrow-fx:0.11.0")
 
     testImplementation("junit:junit:4.13")
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
