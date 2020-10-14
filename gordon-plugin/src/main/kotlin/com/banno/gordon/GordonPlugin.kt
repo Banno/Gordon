@@ -1,19 +1,31 @@
 package com.banno.gordon
 
+import com.android.build.api.artifact.ArtifactType
 import com.android.build.api.attributes.VariantAttr
+import com.android.build.api.dsl.AndroidSourceSet
+import com.android.build.api.dsl.BuildFeatures
+import com.android.build.api.dsl.BuildType
+import com.android.build.api.dsl.CommonExtension
+import com.android.build.api.dsl.DefaultConfig
+import com.android.build.api.dsl.ProductFlavor
+import com.android.build.api.dsl.SigningConfig
+import com.android.build.api.variant.Variant
+import com.android.build.api.variant.VariantProperties
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.api.ApplicationVariant
-import com.android.build.gradle.api.TestVariant
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.plugins.JavaBasePlugin.VERIFICATION_GROUP
 import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
+
+private typealias GenericCommonExtension = CommonExtension<AndroidSourceSet, BuildFeatures, BuildType, DefaultConfig, ProductFlavor, SigningConfig, Variant<VariantProperties>, VariantProperties>
 
 class GordonPlugin : Plugin<Project> {
 
@@ -23,82 +35,79 @@ class GordonPlugin : Plugin<Project> {
 
         val gordonExtension = project.extensions.create<GordonExtension>("gordon")
 
-        val androidExtension = project.extensions.getByType<TestedExtension>()
+        val androidExtension = project.extensions.getByName<GenericCommonExtension>("android")
+        val testedExtension = project.extensions.getByType<TestedExtension>()
 
-        androidExtension.testVariants.all {
-            val testVariant = this
-            val variantTaskName = testVariant.name
-                .capitalize()
-                .replace(Regex("AndroidTest$"), "")
-                .replace(Regex("Debug$"), "")
+        androidExtension.onVariants {
+            androidTestProperties {
+                val testVariantProperties = this
+                val variantTaskName = testVariantProperties.name
+                    .capitalize()
+                    .replace(Regex("AndroidTest$"), "")
+                    .replace(Regex("Debug$"), "")
 
-            project.tasks.register<GordonTestTask>("gordon$variantTaskName") {
-                group = VERIFICATION_GROUP
-                val variantDescription = variantTaskName.takeIf { it.isNotBlank() }?.let { " for $it" } ?: ""
-                description = "Installs and runs instrumentation tests$variantDescription."
+                project.tasks.register<GordonTestTask>("gordon$variantTaskName") {
+                    group = VERIFICATION_GROUP
+                    val variantDescription = variantTaskName.takeIf { it.isNotBlank() }?.let { " for $it" } ?: ""
+                    description = "Installs and runs instrumentation tests$variantDescription."
 
-                val testedVariant = testVariant.testedVariant
+                    val testedVariantProperties = testVariantProperties.testedVariant
 
-                val (appProject, appVariant) = when (androidPluginType) {
-                    AndroidPluginType.LIBRARY ->
-                        null to null
-                    AndroidPluginType.APP ->
-                        project to testedVariant as ApplicationVariant
-                    AndroidPluginType.DYNAMIC_FEATURE ->
-                        appDependencyOfFeature(project, testedVariant as ApkVariant)
-                }
+                    this.instrumentationApkDir.set(testVariantProperties.artifacts.get(ArtifactType.APK))
+                    this.instrumentationPackage.set(testVariantProperties.applicationId)
 
-                val instrumentationRunnerOptions = InstrumentationRunnerOptions(
-                    testInstrumentationRunner = testedVariant.mergedFlavor.testInstrumentationRunner
-                        ?: "android.test.InstrumentationTestRunner",
-                    testInstrumentationRunnerArguments = testedVariant.mergedFlavor.testInstrumentationRunnerArguments,
-                    animationsDisabled = androidExtension.testOptions.animationsDisabled
-                )
+                    if (androidPluginType != AndroidPluginType.LIBRARY) {
+                        this.applicationPackage.set(testedVariantProperties.applicationId)
+                    }
 
-                dependsOn(testVariant.assembleProvider)
+                    if (androidPluginType == AndroidPluginType.DYNAMIC_FEATURE) {
+                        this.dynamicFeatureModuleName.set(project.name)
+                    }
 
-                if (appProject != null && appVariant != null) {
-                    dependsOn(appProject.tasks.named("bundle${appVariant.name.capitalize()}"))
-                    this.applicationAab.apply { set(appVariant.aabOutputFile(appProject)) }.finalizeValue()
-                    this.applicationPackage.apply { set(appVariant.applicationId) }.finalizeValue()
-                }
+                    val testVariant = testedExtension.testVariants.single { it.name == testVariantProperties.name }
+                    val testedVariant = testVariant.testedVariant
+                    val (appAabProvider, appVariant) = when (androidPluginType) {
+                        AndroidPluginType.LIBRARY ->
+                            null to null
+                        AndroidPluginType.APP ->
+                            testedVariantProperties.artifacts.get(ArtifactType.BUNDLE) to testedVariant as ApplicationVariant
+                        AndroidPluginType.DYNAMIC_FEATURE -> {
+                            val (appProject, appVariant) = appDependencyOfFeature(project, testedVariant as ApkVariant)
+                            dependsOn(appProject.tasks.named("bundle${appVariant.name.capitalize()}"))
+                            appVariant.aabOutputFile(appProject) to appVariant
+                        }
+                    }
 
-                appVariant?.signingConfig?.storeFile?.let {
-                    this.signingKeystoreFile.apply { set(it) }.finalizeValue()
-                }
-                this.signingConfigCredentials.apply {
-                    set(
+                    appAabProvider?.let(this.applicationAab::set)
+
+                    appVariant?.signingConfig?.storeFile?.let(this.signingKeystoreFile::set)
+                    this.signingConfigCredentials.set(
                         SigningConfigCredentials(
                             storePassword = appVariant?.signingConfig?.storePassword,
                             keyAlias = appVariant?.signingConfig?.keyAlias,
                             keyPassword = appVariant?.signingConfig?.keyPassword
                         )
                     )
-                }.finalizeValue()
 
-                if (androidPluginType == AndroidPluginType.DYNAMIC_FEATURE) {
-                    this.dynamicFeatureModuleName.apply { set(project.name) }.finalizeValue()
+                    val instrumentationRunnerOptions = testVariantProperties.instrumentationRunner.map { instrumentationRunner ->
+                        InstrumentationRunnerOptions(
+                            testInstrumentationRunner = instrumentationRunner,
+                            testInstrumentationRunnerArguments = testedVariant.mergedFlavor.testInstrumentationRunnerArguments,
+                            animationsDisabled = androidExtension.testOptions.animationsDisabled
+                        )
+                    }
+                    this.androidInstrumentationRunnerOptions.set(instrumentationRunnerOptions)
+
+                    this.poolingStrategy.set(gordonExtension.poolingStrategy)
+                    this.tabletShortestWidthDp.set(gordonExtension.tabletShortestWidthDp)
+                    this.retryQuota.set(gordonExtension.retryQuota)
+                    this.installTimeoutMillis.set(gordonExtension.installTimeoutMillis)
+                    this.testTimeoutMillis.set(gordonExtension.testTimeoutMillis)
+                    this.extensionTestFilter.set(gordonExtension.testFilter)
+                    this.extensionTestInstrumentationRunner.set(gordonExtension.testInstrumentationRunner)
                 }
-
-                this.instrumentationApk.apply { set(testVariant.apkOutputFile()) }.finalizeValue()
-                this.instrumentationPackage.apply { set(testVariant.applicationId) }.finalizeValue()
-
-                this.poolingStrategy.apply { set(gordonExtension.poolingStrategy) }.finalizeValue()
-                this.tabletShortestWidthDp.apply { set(gordonExtension.tabletShortestWidthDp) }.finalizeValue()
-                this.retryQuota.apply { set(gordonExtension.retryQuota) }.finalizeValue()
-                this.installTimeoutMillis.apply { set(gordonExtension.installTimeoutMillis) }.finalizeValue()
-                this.testTimeoutMillis.apply { set(gordonExtension.testTimeoutMillis) }.finalizeValue()
-                this.extensionTestFilter.apply { set(gordonExtension.testFilter) }.finalizeValue()
-                this.extensionTestInstrumentationRunner.apply { set(gordonExtension.testInstrumentationRunner) }
-                    .finalizeValue()
-
-                this.androidInstrumentationRunnerOptions.apply { set(instrumentationRunnerOptions) }.finalizeValue()
             }
         }
-    }
-
-    private fun TestVariant.apkOutputFile() = packageApplicationProvider.flatMap {
-        it.outputDirectory.file(it.apkNames.single())
     }
 
     private fun ApplicationVariant.aabOutputFile(appProject: Project) = appProject.layout.buildDirectory.file(

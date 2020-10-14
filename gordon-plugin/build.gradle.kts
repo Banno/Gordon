@@ -13,13 +13,15 @@ repositories {
     maven("https://www.jitpack.io")
 }
 
+val androidGradlePluginVersion: String by project
+val aapt2Version: String by project
+
 dependencies {
     implementation(gradleKotlinDsl())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.2")
 
-    val androidGradlePluginVersion: String by project
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
     implementation("com.android.tools.build:bundletool:1.2.0")
     implementation("org.smali:dexlib2:2.4.0")
@@ -37,7 +39,6 @@ tasks.withType<Test>().configureEach {
     testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 }
 
-val aapt2Version = "4.0.1-6197926"
 val jar = tasks.named<Jar>("jar")
 mapOf(
     "linux" to "linux/",
