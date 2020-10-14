@@ -16,6 +16,15 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    val debugSigningConfig = signingConfigs.register("debugSigningConfig") {
+        storeFile = file("debug.keystore")
+        storePassword = "bigbago"
+        keyAlias = "key0"
+        keyPassword = "pickles"
+    }
+    buildTypes.named("debug") {
+        signingConfig = debugSigningConfig.get()
+    }
     dynamicFeatures = mutableSetOf(
         ":test_feature"
     )
