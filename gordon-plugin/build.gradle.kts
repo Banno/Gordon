@@ -33,7 +33,7 @@ dependencies {
 }
 
 tasks.withType<Test>().configureEach {
-    dependsOn(":app:assembleDebugAndroidTest")
+    dependsOn(":test-app:assembleDebugAndroidTest")
     testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 }
 

@@ -25,5 +25,5 @@ repositories {
 
 dependencies {
     implementation("androidx.appcompat:appcompat:1.2.0")
-    androidTestImplementation("androidx.test:runner:1.2.0")
+    androidTestImplementation("androidx.test:runner:1.3.0")
 }
