@@ -5,6 +5,7 @@ import arrow.fx.extensions.fx
 import kotlinx.coroutines.Dispatchers
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.LogLevel
@@ -13,6 +14,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
@@ -30,9 +32,9 @@ internal abstract class GordonTestTask @Inject constructor(
     projectLayout: ProjectLayout
 ) : DefaultTask() {
 
-    @get:InputFile
+    @get:InputDirectory
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
-    internal val instrumentationApk: RegularFileProperty = objects.fileProperty()
+    internal val instrumentationApkDir: DirectoryProperty = objects.directoryProperty()
 
     @get:InputFile
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
@@ -104,6 +106,8 @@ internal abstract class GordonTestTask @Inject constructor(
 
     @TaskAction
     private fun runTests() {
+        val instrumentationApk = instrumentationApkDir.asFileTree.single { it.extension == "apk" }
+
         val runTests = IO.fx {
             testResultsDirectory.get().asFile.clear().bind()
             reportDirectory.get().asFile.clear().bind()
@@ -113,7 +117,7 @@ internal abstract class GordonTestTask @Inject constructor(
                 poolingStrategy.get(),
                 tabletShortestWidthDp.get().takeIf { it > -1 }
             ).bind()
-            val testCases = loadTestSuite(instrumentationApk.get().asFile).bind()
+            val testCases = loadTestSuite(instrumentationApk).bind()
                 .filter { it.matchesFilter(testFilters.get()) }
 
             when {
@@ -144,7 +148,7 @@ internal abstract class GordonTestTask @Inject constructor(
                 dynamicModule = dynamicModuleName,
                 applicationAab = applicationAab,
                 signingConfig = signingConfig,
-                instrumentationApk = instrumentationApk.get().asFile,
+                instrumentationApk = instrumentationApk,
                 installTimeoutMillis = installTimeoutMillis.get()
             ).bind()
 
