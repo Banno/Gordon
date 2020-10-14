@@ -205,6 +205,7 @@ Contributions are welcome. You can use the included `test-...` modules to locall
    - `./gradlew test-app:gordon` should have some tests that pass, some that fail, some that are ignored, and a flaky one that might pass or fail
    - `./gradlew test-library:gordonBar` should have 2 tests that pass and 1 that is ignored
    - `./gradlew test-library:gordonBaz` should have 3 tests that are ignored
+   - `./gradlew test_feature:gordon` should have 2 tests that pass and 1 that is ignored
 
 ## Why we named our test runner Gordon
 ![Gordon](https://user-images.githubusercontent.com/12698923/66937311-dbd1b580-f004-11e9-8faf-6dd2c7074485.png)

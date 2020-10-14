@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.application")
+    id("com.android.dynamic-feature")
     kotlin("android")
     id("org.jmailen.kotlinter")
     //id("com.banno.gordon") version "localVersion"
@@ -11,14 +11,10 @@ android {
     defaultConfig {
         minSdkVersion(21)
         targetSdkVersion(29)
-        applicationId = "com.banno.android.gordontest"
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    dynamicFeatures = mutableSetOf(
-        ":test_feature"
-    )
 }
 
 repositories {
@@ -27,6 +23,7 @@ repositories {
 }
 
 dependencies {
-    implementation("androidx.appcompat:appcompat:1.2.0")
+    implementation(project(":test-app"))
+    implementation("androidx.fragment:fragment-ktx:1.2.5")
     androidTestImplementation("androidx.test:runner:1.3.0")
 }
