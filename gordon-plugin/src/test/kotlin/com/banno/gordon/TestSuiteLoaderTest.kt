@@ -7,7 +7,7 @@ class TestSuiteLoaderTest {
 
     @Test
     fun loadingTestSuite() {
-        val instrumentation = File("src/test/assets/test-app-debug-androidTest.apk")
+        val instrumentation = File("src/test/assets/test_app-debug-androidTest.apk")
 
         val testSuite = loadTestSuite(instrumentation).unsafeRunSync()
 

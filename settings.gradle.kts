@@ -1,4 +1,4 @@
-include("gordon-plugin", "test-app", "test-library", "test_feature")
+include("gordon-plugin", "test_app", "test_feature", "test_library")
 
 pluginManagement {
     val androidGradlePluginVersion: String by settings

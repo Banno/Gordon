@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":test-app"))
+    implementation(project(":test_app"))
     implementation("androidx.fragment:fragment-ktx:1.2.5")
     androidTestImplementation("androidx.test:runner:1.3.0")
 }
