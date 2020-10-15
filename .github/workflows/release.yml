@@ -25,9 +25,9 @@ jobs:
 
     - run: |
         PREVIOUS_TAG=${{ steps.get_previous_release.outputs.tag_name }}
-        echo "::set-env name=previousTag::$PREVIOUS_TAG"
+        echo "previousTag=$PREVIOUS_TAG" >> $GITHUB_ENV
         NEW_TAG=${{ steps.get_new_version.outputs.value }}
-        echo "::set-env name=newTag::$NEW_TAG"
+        echo "newTag=$NEW_TAG" >> $GITHUB_ENV
 
     - name: Create Tag
       uses: simpleactions/create-tag@v1.0.0
