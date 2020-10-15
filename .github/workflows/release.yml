@@ -17,6 +17,10 @@ jobs:
     - id: get_previous_release
       uses: thebritican/fetch-latest-release@v2.0.0
 
+    - run: |
+        PREVIOUS_TAG=${{ steps.get_previous_release.outputs.tag_name }}
+        echo "previousTag=$PREVIOUS_TAG" >> $GITHUB_ENV
+
     - id: get_new_version
       uses: christian-draeger/read-properties@1.0.1
       with:
@@ -24,8 +28,6 @@ jobs:
         property: version
 
     - run: |
-        PREVIOUS_TAG=${{ steps.get_previous_release.outputs.tag_name }}
-        echo "previousTag=$PREVIOUS_TAG" >> $GITHUB_ENV
         NEW_TAG=${{ steps.get_new_version.outputs.value }}
         echo "newTag=$NEW_TAG" >> $GITHUB_ENV
 
