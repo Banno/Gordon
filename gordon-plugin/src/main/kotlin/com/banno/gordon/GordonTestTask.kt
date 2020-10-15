@@ -96,6 +96,12 @@ internal abstract class GordonTestTask @Inject constructor(
     @OutputDirectory
     val reportDirectory: Provider<Directory> = projectLayout.buildDirectory.dir("reports/$name")
 
+    internal val rootProjectBuildDirectory: DirectoryProperty = objects.directoryProperty()
+
+    @OutputDirectory
+    @Suppress("unused") // Declare the same output dir on all Gordon tasks so that Gradle won't try to run Gordon for multiple modules in parallel
+    val rootBuildGordonDirectory: Provider<Directory> = rootProjectBuildDirectory.dir("gordon")
+
     init {
         applicationAab.convention { PLACEHOLDER_APPLICATION_AAB }
         signingKeystoreFile.convention { PLACEHOLDER_SIGNING_KEYSTORE }

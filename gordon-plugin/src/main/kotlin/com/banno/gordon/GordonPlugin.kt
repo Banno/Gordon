@@ -51,6 +51,8 @@ class GordonPlugin : Plugin<Project> {
                     val variantDescription = variantTaskName.takeIf { it.isNotBlank() }?.let { " for $it" } ?: ""
                     description = "Installs and runs instrumentation tests$variantDescription."
 
+                    this.rootProjectBuildDirectory.set(project.rootProject.layout.buildDirectory)
+
                     val testedVariantProperties = testVariantProperties.testedVariant
 
                     this.instrumentationApkDir.set(testVariantProperties.artifacts.get(ArtifactType.APK))
