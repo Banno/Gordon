@@ -72,7 +72,7 @@ internal fun JadbDevice.installApk(timeoutMillis: Long, apk: File, vararg option
     }
 }
 
-internal fun JadbDevice.installApkSet(timeoutMillis: Long, apkSet: File, dynamicModule: String?) = IO.fx {
+internal fun JadbDevice.installApkSet(timeoutMillis: Long, apkSet: File, onDemandDynamicModuleName: String?) = IO.fx {
     val result = ioWithTimeout(timeoutMillis) {
         InstallApksCommand.fromFlags(
             FlagParser().parse(
@@ -82,7 +82,7 @@ internal fun JadbDevice.installApkSet(timeoutMillis: Long, apkSet: File, dynamic
                     "--allow-downgrade",
                     "--allow-test-only",
                     "--device-id=$serial",
-                    dynamicModule?.let { "--modules=$it" }
+                    onDemandDynamicModuleName?.let { "--modules=$it" }
                 ).toTypedArray()
             ),
             DdmlibAdbServer.getInstance()
@@ -141,7 +141,7 @@ internal fun List<JadbDevice>.reinstall(
     logger: Logger,
     applicationPackage: String?,
     instrumentationPackage: String,
-    dynamicModule: String?,
+    onDemandDynamicModuleName: String?,
     applicationAab: File?,
     signingConfig: SigningConfig,
     instrumentationApk: File,
@@ -157,7 +157,7 @@ internal fun List<JadbDevice>.reinstall(
                 if (applicationPackage != null && applicationApkSet != null) {
                     logger.lifecycle("${device.serial}: installing $applicationPackage")
                     packageManager.safeUninstall(applicationPackage)
-                    device.installApkSet(installTimeoutMillis, applicationApkSet, dynamicModule).unsafeRunSync()
+                    device.installApkSet(installTimeoutMillis, applicationApkSet, onDemandDynamicModuleName).unsafeRunSync()
                 }
 
                 logger.lifecycle("${device.serial}: installing $instrumentationPackage")

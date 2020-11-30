@@ -137,7 +137,7 @@ internal abstract class GordonTestTask @Inject constructor(
 
             val applicationAab = applicationAab.get().asFile.takeUnless { it == PLACEHOLDER_APPLICATION_AAB }
             val applicationPackage = applicationPackage.get().takeUnless { it == PLACEHOLDER_APPLICATION_PACKAGE }
-            val dynamicModuleName = dynamicFeatureModuleName.get().takeUnless { it == PLACEHOLDER_DYNAMIC_MODULE_NAME }
+            val onDemandDynamicModuleName = dynamicFeatureModuleName.get().takeUnless { it == PLACEHOLDER_DYNAMIC_MODULE_NAME }
 
             val signingConfig = SigningConfig(
                 storeFile = signingKeystoreFile.get().asFile.takeUnless { it == PLACEHOLDER_SIGNING_KEYSTORE },
@@ -151,7 +151,7 @@ internal abstract class GordonTestTask @Inject constructor(
                 logger = logger,
                 applicationPackage = applicationPackage,
                 instrumentationPackage = instrumentationPackage.get(),
-                dynamicModule = dynamicModuleName,
+                onDemandDynamicModuleName = onDemandDynamicModuleName,
                 applicationAab = applicationAab,
                 signingConfig = signingConfig,
                 instrumentationApk = instrumentationApk,
