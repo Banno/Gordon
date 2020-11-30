@@ -23,7 +23,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.2")
 
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
-    implementation("com.android.tools.build:bundletool:1.2.0")
+    implementation("com.android.tools.build:bundletool:1.4.0")
     implementation("org.smali:dexlib2:2.4.0")
     implementation("com.github.vidstige:jadb:v1.1.0")
 
