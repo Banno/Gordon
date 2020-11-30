@@ -47,6 +47,10 @@ internal abstract class GordonTestTask @Inject constructor(
     @get:Input
     internal val signingConfigCredentials: Property<SigningConfigCredentials> = objects.property()
 
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    internal val dynamicFeatureModuleManifest: RegularFileProperty = objects.fileProperty()
+
     @get:Input
     internal val dynamicFeatureModuleName: Property<String> = objects.property()
 
@@ -105,6 +109,7 @@ internal abstract class GordonTestTask @Inject constructor(
     init {
         applicationAab.convention { PLACEHOLDER_APPLICATION_AAB }
         signingKeystoreFile.convention { PLACEHOLDER_SIGNING_KEYSTORE }
+        dynamicFeatureModuleManifest.convention { PLACEHOLDER_DYNAMIC_MODULE_MANIFEST }
         dynamicFeatureModuleName.convention(PLACEHOLDER_DYNAMIC_MODULE_NAME)
         applicationPackage.convention(PLACEHOLDER_APPLICATION_PACKAGE)
         commandlineTestFilter.convention("")
@@ -138,6 +143,7 @@ internal abstract class GordonTestTask @Inject constructor(
             val applicationAab = applicationAab.get().asFile.takeUnless { it == PLACEHOLDER_APPLICATION_AAB }
             val applicationPackage = applicationPackage.get().takeUnless { it == PLACEHOLDER_APPLICATION_PACKAGE }
             val onDemandDynamicModuleName = dynamicFeatureModuleName.get().takeUnless { it == PLACEHOLDER_DYNAMIC_MODULE_NAME }
+                .takeIf { dynamicFeatureModuleManifest.get().asFile.readText().contains("dist:on-demand") }
 
             val signingConfig = SigningConfig(
                 storeFile = signingKeystoreFile.get().asFile.takeUnless { it == PLACEHOLDER_SIGNING_KEYSTORE },
@@ -213,5 +219,6 @@ internal fun TestCase.matchesFilter(filters: List<String>): Boolean {
 
 private val PLACEHOLDER_APPLICATION_AAB = File.createTempFile("PLACEHOLDER_APPLICATION_AAB", null)
 private val PLACEHOLDER_SIGNING_KEYSTORE = File.createTempFile("PLACEHOLDER_SIGNING_KEYSTORE", null)
+private val PLACEHOLDER_DYNAMIC_MODULE_MANIFEST = File.createTempFile("PLACEHOLDER_DYNAMIC_MODULE_MANIFEST", null)
 private const val PLACEHOLDER_DYNAMIC_MODULE_NAME = "PLACEHOLDER_DYNAMIC_MODULE_NAME"
 private const val PLACEHOLDER_APPLICATION_PACKAGE = "PLACEHOLDER_APPLICATION_PACKAGE"
