@@ -63,6 +63,7 @@ class GordonPlugin : Plugin<Project> {
                     }
 
                     if (androidPluginType == AndroidPluginType.DYNAMIC_FEATURE) {
+                        this.dynamicFeatureModuleManifest.set(testedVariantProperties.artifacts.get(ArtifactType.MERGED_MANIFEST))
                         this.dynamicFeatureModuleName.set(project.name)
                     }
 
