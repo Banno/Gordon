@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Have a feature request or idea for improvement?
+    url: https://github.com/Banno/Gordon/discussions
+    about: Please start a discussion in the "Ideas" category
+  - name: Not sure your problem is caused by a Gordon bug?
+    url: https://github.com/Banno/Gordon/discussions
+    about: Please start a discussion in the "Q&A" category
