@@ -193,19 +193,8 @@ If a retry quota is specified, Gordon will, after trying tests once, first retry
 Gordon generates junit reports in the build directory / `test-results`, and an HTML report in the build directory / `reports`.
 
 ## Other notes
-- Gordon does not support [ABI/density splits](https://developer.android.com/studio/build/configure-apk-splits). We highly recommend you use [the App Bundle format](https://developer.android.com/guide/app-bundle) instead. However, Gordon v1.3.1 and older versions support splits, so you may be able to use an old version for now.
-
-## Contributing
-
-Contributions are welcome. You can use the included `test_...` modules to locally test changes to the Gordon plugin.
-1. Make changes to Gordon plugin
-2. Run `./gradlew publishToMavenLocal`
-3. Uncomment the `com.banno.gordon` plugin in test module buildscripts and change the version to the one you just deployed (which can be found in `gordon-plugin/gradle.properties`)
-4. Test your changes by running tests using the locally-deployed Gordon
-   - `./gradlew test_app:gordon` should have some tests that pass, some that fail, some that are ignored, and a flaky one that might pass or fail
-   - `./gradlew test_feature:gordon` should have 2 tests that pass and 1 that is ignored
-   - `./gradlew test_library:gordonBar` should have 2 tests that pass and 1 that is ignored
-   - `./gradlew test_library:gordonBaz` should have 3 tests that are ignored
+- See questions that have already been answered in [the Q&A category of Discussions](https://github.com/Banno/Gordon/discussions?discussions_q=category%3AQ%26A).
+- Contributions are welcome! See [the guidelines](CONTRIBUTING.md).
 
 ## Why we named our test runner Gordon
 ![Gordon](https://user-images.githubusercontent.com/12698923/66937311-dbd1b580-f004-11e9-8faf-6dd2c7074485.png)
