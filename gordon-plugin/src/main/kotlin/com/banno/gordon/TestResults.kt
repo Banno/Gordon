@@ -78,11 +78,11 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
                             TestResult.NotRun -> element("error", "Unable to run test")
                             is TestResult.Failed -> element(
                                 "failure",
-                                result.failures.map { it.shellOutput }.concatFailures()
+                                result.failures.concatFailures()
                             )
                             is TestResult.Flaky -> element(
                                 "system-err",
-                                result.failures.map { it.shellOutput }.concatFailures()
+                                result.failures.concatFailures()
                             )
                         }
                     }
@@ -95,10 +95,10 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
         }
     }
 
-private fun List<String>.concatFailures(): String {
-    return mapIndexed { index, output -> "\n\nFailure ${index + 1}\n$output" }
-        .joinToString(separator = "\n")
+private fun List<Failure>.concatFailures(): String = mapIndexed { index, it ->
+    "\n\nFailure ${index + 1}\nDevice: ${it.deviceSerial}\n${it.shellOutput}"
 }
+    .joinToString(separator = "\n")
 
 private fun TestResult.duration(): Float? = when (this) {
     is TestResult.Passed -> duration
@@ -124,9 +124,9 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.htmlReport(): ReportFile {
                         div(classes = "outputsection") {
                             resultSectionTitle("Failed")
                             article {
-                                failed.forEach { (testCase, failure) ->
+                                failed.forEach { (testCase, result) ->
                                     button(classes = "failure collapsible") { +testCase.title }
-                                    div(classes = "content") { addFormattedShellOutput(failure.failures.map { it.shellOutput }) }
+                                    div(classes = "content") { addFormattedShellOutput(result.failures) }
                                 }
                             }
                         }
@@ -137,9 +137,9 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.htmlReport(): ReportFile {
                         div(classes = "outputsection") {
                             resultSectionTitle("Flaky (Failed and then Passed)")
                             article {
-                                flaky.forEach { (testCase, failure) ->
+                                flaky.forEach { (testCase, result) ->
                                     button(classes = "flaky collapsible") { +testCase.title }
-                                    div(classes = "content") { addFormattedShellOutput(failure.failures.map { it.shellOutput }) }
+                                    div(classes = "content") { addFormattedShellOutput(result.failures) }
                                 }
                             }
                         }
@@ -421,14 +421,16 @@ private fun FlowContent.resultSectionTitle(sectionName: String) {
     header { +sectionName }
 }
 
-private fun FlowContent.addFormattedShellOutput(outputs: List<String>) {
-    outputs.forEachIndexed { index, output ->
+private fun FlowContent.addFormattedShellOutput(failures: List<Failure>) {
+    failures.forEachIndexed { index, it ->
         br
         br
 
         p { +"Failure ${index + 1}" }
 
-        output.split("\n\n")
+        p { +"Device: ${it.deviceSerial}" }
+
+        it.shellOutput.split("\n\n")
             .map {
                 p {
                     it.split("\n")
