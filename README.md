@@ -23,7 +23,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         google()
-        jcenter()
+        mavenCentral()
         maven("https://www.jitpack.io")
     }
 
@@ -48,7 +48,7 @@ buildscript {
     repositories {
         gradlePluginPortal()
         google()
-        jcenter()
+        mavenCentral()
         maven { url "https://jitpack.io" }
     }
 
@@ -72,7 +72,7 @@ If you have a buildSrc module, you may also need to add the dependency there if 
 repositories {
     gradlePluginPortal()
     google()
-    jcenter()
+    mavenCentral()
     maven("https://www.jitpack.io")
 }
 
