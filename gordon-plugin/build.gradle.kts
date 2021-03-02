@@ -9,6 +9,7 @@ plugins {
 
 repositories {
     google()
+    mavenCentral()
     jcenter()
     maven("https://www.jitpack.io")
 }
@@ -18,12 +19,12 @@ val aapt2Version: String by project
 
 dependencies {
     implementation(gradleKotlinDsl())
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.2")
 
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
-    implementation("com.android.tools.build:bundletool:1.4.0")
+    implementation("com.android.tools.build:bundletool:1.5.0")
     implementation("org.smali:dexlib2:2.4.0")
     implementation("com.github.vidstige:jadb:v1.1.0")
 
