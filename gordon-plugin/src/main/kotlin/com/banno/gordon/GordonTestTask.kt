@@ -16,6 +16,7 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -66,16 +67,26 @@ internal abstract class GordonTestTask @Inject constructor(
     @get:Input
     internal val tabletShortestWidthDp: Property<Int> = objects.property()
 
+    @get:Internal
     internal val retryQuota: Property<Int> = objects.property()
+
+    @get:Internal
     internal val installTimeoutMillis: Property<Long> = objects.property()
+
+    @get:Internal
     internal val testTimeoutMillis: Property<Long> = objects.property()
 
+    @get:Internal
     internal val extensionTestFilter: Property<String> = objects.property()
+
+    @get:Internal
     internal val extensionTestInstrumentationRunner: Property<String> = objects.property()
 
+    @get:Internal
     @Option(option = "tests", description = "Comma-separated packages, classes, methods, or annotations.")
     val commandlineTestFilter: Property<String> = objects.property()
 
+    @get:Internal
     internal val androidInstrumentationRunnerOptions: Property<InstrumentationRunnerOptions> = objects.property()
 
     @get:Input
@@ -100,6 +111,7 @@ internal abstract class GordonTestTask @Inject constructor(
     @OutputDirectory
     val reportDirectory: Provider<Directory> = projectLayout.buildDirectory.dir("reports/$name")
 
+    @get:Internal
     internal val rootProjectBuildDirectory: DirectoryProperty = objects.directoryProperty()
 
     @OutputDirectory
