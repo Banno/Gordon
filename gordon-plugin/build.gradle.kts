@@ -10,7 +10,11 @@ plugins {
 repositories {
     google()
     mavenCentral()
-    jcenter()
+    jcenter {
+        content {
+            includeModuleByRegex("org\\.jetbrains\\.kotlinx", "kotlinx-html.*")
+        }
+    }
     maven("https://www.jitpack.io")
 }
 
