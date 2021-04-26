@@ -10,11 +10,6 @@ plugins {
 repositories {
     google()
     mavenCentral()
-    jcenter {
-        content {
-            includeModuleByRegex("org\\.jetbrains\\.kotlinx", "kotlinx-html.*")
-        }
-    }
     maven("https://www.jitpack.io")
 }
 
@@ -25,7 +20,7 @@ dependencies {
     implementation(gradleKotlinDsl())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
 
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
     implementation("com.android.tools.build:bundletool:1.5.0")
