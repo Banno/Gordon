@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    compileSdkVersion(29)
-    buildToolsVersion("29.0.3")
+    compileSdk = 30
+    buildToolsVersion = "30.0.3"
     defaultConfig {
-        minSdkVersion(21)
-        targetSdkVersion(29)
+        minSdk = 21
+        targetSdk = 30
         applicationId = "com.banno.android.gordontest"
         versionCode = 1
         versionName = "1.0"
@@ -25,7 +25,7 @@ android {
     buildTypes.named("debug") {
         signingConfig = debugSigningConfig.get()
     }
-    dynamicFeatures = mutableSetOf(
+    dynamicFeatures.add(
         ":test_feature"
     )
 }
