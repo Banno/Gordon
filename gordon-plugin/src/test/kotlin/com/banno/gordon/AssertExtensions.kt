@@ -1,13 +1,12 @@
 package com.banno.gordon
 
-import com.nhaarman.mockitokotlin2.KArgumentCaptor
-import com.nhaarman.mockitokotlin2.KStubbing
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.mockito.kotlin.KStubbing
 import org.mockito.stubbing.OngoingStubbing
 
 infix fun <T> T.shouldEqual(expected: T) = assertThat(this, equalTo(expected))
@@ -33,12 +32,6 @@ inline fun <reified T : Any> forMock(
     stubbing: KStubbing<T>.(T) -> Unit
 ): T = mock.apply {
     KStubbing(this).stubbing(this)
-}
-
-inline fun <reified T : Any> argumentCaptor(
-    block: KArgumentCaptor<T>.() -> Unit
-): KArgumentCaptor<T> = com.nhaarman.mockitokotlin2.argumentCaptor<T>().apply {
-    block.invoke(this)
 }
 
 fun <T> OngoingStubbing<T>.doReturnNull(): OngoingStubbing<T> = thenReturn(null)

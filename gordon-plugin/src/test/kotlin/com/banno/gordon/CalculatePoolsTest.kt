@@ -1,8 +1,8 @@
 package com.banno.gordon
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import se.vidstige.jadb.JadbConnection
 import se.vidstige.jadb.JadbDevice
 import java.io.ByteArrayInputStream
