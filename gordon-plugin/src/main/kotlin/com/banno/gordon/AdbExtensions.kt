@@ -1,5 +1,7 @@
 package com.banno.gordon
 
+import arrow.core.Either
+import arrow.core.identity
 import arrow.fx.IO
 import arrow.fx.extensions.fx
 import com.android.tools.build.bundletool.commands.BuildApksCommand
@@ -72,12 +74,13 @@ internal fun JadbDevice.installApk(timeoutMillis: Long, apk: File, vararg option
     }
 }
 
-internal fun JadbDevice.installApkSet(timeoutMillis: Long, apkSet: File, onDemandDynamicModuleName: String?) = IO.fx {
-    val result = ioWithTimeout(timeoutMillis) {
+internal fun JadbDevice.installApkSet(timeoutMillis: Long, apkSet: File, onDemandDynamicModuleName: String?) = IO {
+    Either.catch {
         InstallApksCommand.fromFlags(
             FlagParser().parse(
                 *listOfNotNull(
                     "install-apks",
+                    "--timeout-millis=$timeoutMillis",
                     "--apks=${apkSet.path}",
                     "--allow-downgrade",
                     "--allow-test-only",
@@ -87,11 +90,7 @@ internal fun JadbDevice.installApkSet(timeoutMillis: Long, apkSet: File, onDeman
             ),
             DdmlibAdbServer.getInstance()
         ).execute()
-    }.bind()
-
-    if (result == null) {
-        raiseError<Unit>(IllegalStateException("Install timed out for ${apkSet.name} on $serial")).bind()
-    }
+    }.fold({ throw IllegalStateException("Failed to install ${apkSet.name} on $serial", it) }, ::identity)
 }
 
 internal fun buildApkSet(aab: File, signingConfig: SigningConfig) = IO {
