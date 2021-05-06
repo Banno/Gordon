@@ -6,23 +6,21 @@ plugins {
 }
 
 android {
-    compileSdkVersion(29)
-    buildToolsVersion("29.0.3")
+    compileSdk = 30
+    buildToolsVersion = "30.0.3"
     defaultConfig {
-        minSdkVersion(21)
-        targetSdkVersion(29)
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = 21
+        targetSdk = 30
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    flavorDimensions("foo")
+    flavorDimensions.add("foo")
     productFlavors {
         register("bar") {
             dimension = "foo"
         }
         register("baz") {
             dimension = "foo"
-            testInstrumentationRunnerArgument("notAnnotation", "org.junit.Test")
+            testInstrumentationRunnerArguments["notAnnotation"] = "org.junit.Test"
         }
     }
 }

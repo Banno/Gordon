@@ -2,15 +2,9 @@ package com.banno.gordon
 
 import com.android.build.api.artifact.ArtifactType
 import com.android.build.api.attributes.VariantAttr
-import com.android.build.api.dsl.AndroidSourceSet
-import com.android.build.api.dsl.BuildFeatures
-import com.android.build.api.dsl.BuildType
-import com.android.build.api.dsl.CommonExtension
-import com.android.build.api.dsl.DefaultConfig
-import com.android.build.api.dsl.ProductFlavor
-import com.android.build.api.dsl.SigningConfig
+import com.android.build.api.extension.AndroidComponentsExtension
 import com.android.build.api.variant.Variant
-import com.android.build.api.variant.VariantProperties
+import com.android.build.api.variant.VariantBuilder
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.TestedExtension
 import com.android.build.gradle.api.ApkVariant
@@ -25,8 +19,6 @@ import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
 
-private typealias GenericCommonExtension = CommonExtension<AndroidSourceSet, BuildFeatures, BuildType, DefaultConfig, ProductFlavor, SigningConfig, Variant<VariantProperties>, VariantProperties>
-
 class GordonPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
@@ -35,12 +27,11 @@ class GordonPlugin : Plugin<Project> {
 
         val gordonExtension = project.extensions.create<GordonExtension>("gordon")
 
-        val androidExtension = project.extensions.getByName<GenericCommonExtension>("android")
+        val componentsExtension = project.extensions.getByName<AndroidComponentsExtension<VariantBuilder, Variant>>("androidComponents")
         val testedExtension = project.extensions.getByType<TestedExtension>()
 
-        androidExtension.onVariants {
-            androidTestProperties {
-                val testVariantProperties = this
+        componentsExtension
+            .androidTests { testVariantProperties ->
                 val variantTaskName = testVariantProperties.name
                     .capitalize()
                     .replace(Regex("AndroidTest$"), "")
@@ -96,7 +87,7 @@ class GordonPlugin : Plugin<Project> {
                         InstrumentationRunnerOptions(
                             testInstrumentationRunner = instrumentationRunner,
                             testInstrumentationRunnerArguments = testedVariant.mergedFlavor.testInstrumentationRunnerArguments,
-                            animationsDisabled = androidExtension.testOptions.animationsDisabled
+                            animationsDisabled = testedExtension.testOptions.animationsDisabled
                         )
                     }
                     this.androidInstrumentationRunnerOptions.set(instrumentationRunnerOptions)
@@ -110,7 +101,6 @@ class GordonPlugin : Plugin<Project> {
                     this.extensionTestInstrumentationRunner.set(gordonExtension.testInstrumentationRunner)
                 }
             }
-        }
     }
 
     private fun ApplicationVariant.aabOutputFile(appProject: Project) = appProject.layout.buildDirectory.file(
