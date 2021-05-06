@@ -1,5 +1,6 @@
 package com.banno.gordon
 
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
@@ -22,7 +23,7 @@ class CalculatePoolsTest {
             on { this.devices } doReturn devices
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PoolPerDevice, null).unsafeRunSync()
+        val actual = runBlocking { calculatePools(jadbConnection, PoolingStrategy.PoolPerDevice, null).orNull() }
 
         actual shouldEqual devices.map { DevicePool(it.serial, listOf(it)) }
     }
@@ -39,7 +40,7 @@ class CalculatePoolsTest {
             on { this.devices } doReturn devices
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.SinglePool, null).unsafeRunSync()
+        val actual = runBlocking { calculatePools(jadbConnection, PoolingStrategy.SinglePool, null).orNull() }
 
         actual shouldEqual listOf(DevicePool("All-Devices", devices))
     }
@@ -60,7 +61,7 @@ class CalculatePoolsTest {
             on { this.devices } doReturn tablets + phones
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, null).unsafeRunSync()
+        val actual = runBlocking { calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, null).orNull() }
 
         actual shouldEqual listOf(
             DevicePool("Tablets", tablets),
@@ -86,7 +87,7 @@ class CalculatePoolsTest {
             on { this.devices } doReturn tablets + phones
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, shortestWidthDp).unsafeRunSync()
+        val actual = runBlocking { calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, shortestWidthDp).orNull() }
 
         actual shouldEqual listOf(
             DevicePool("Tablets", tablets),
@@ -112,16 +113,18 @@ class CalculatePoolsTest {
             )
         }
 
-        val actual = calculatePools(
-            jadbConnection,
-            PoolingStrategy.Manual(
-                mapOf(
-                    "Pool1" to setOf("First", "Fourth", "Nonsense"),
-                    "Pool2" to setOf("Second", "Fifth")
-                )
-            ),
-            null
-        ).unsafeRunSync()
+        val actual = runBlocking {
+            calculatePools(
+                jadbConnection,
+                PoolingStrategy.Manual(
+                    mapOf(
+                        "Pool1" to setOf("First", "Fourth", "Nonsense"),
+                        "Pool2" to setOf("Second", "Fifth")
+                    )
+                ),
+                null
+            ).orNull()
+        }
 
         actual shouldEqual listOf(
             DevicePool("Pool1", listOf(firstDevice, fourthDevice)),

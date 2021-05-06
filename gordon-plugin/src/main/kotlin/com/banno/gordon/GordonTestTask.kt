@@ -1,8 +1,10 @@
 package com.banno.gordon
 
-import arrow.fx.IO
-import arrow.fx.extensions.fx
+import arrow.core.Either
+import arrow.core.computations.either
+import arrow.core.left
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
@@ -128,10 +130,16 @@ internal abstract class GordonTestTask @Inject constructor(
     }
 
     @TaskAction
-    private fun runTests() {
+    private fun runTestsBlocking() {
+        runBlocking {
+            runTests().fold({ throw it }, {})
+        }
+    }
+
+    private suspend fun runTests(): Either<Throwable, Unit> {
         val instrumentationApk = instrumentationApkDir.asFileTree.single { it.extension == "apk" }
 
-        val runTests = IO.fx {
+        return either {
             testResultsDirectory.get().asFile.clear().bind()
             reportDirectory.get().asFile.clear().bind()
 
@@ -144,11 +152,11 @@ internal abstract class GordonTestTask @Inject constructor(
                 .filter { it.matchesFilter(testFilters.get()) }
 
             when {
-                testCases.isEmpty() -> raiseError<Unit>(IllegalStateException("No test cases found")).bind()
-                pools.isEmpty() -> raiseError<Unit>(IllegalStateException("No devices found")).bind()
+                testCases.isEmpty() -> IllegalStateException("No test cases found").left().bind<Unit>()
+                pools.isEmpty() -> IllegalStateException("No devices found").left().bind<Unit>()
                 pools.any { it.devices.isEmpty() } -> {
                     val emptyPools = pools.filter { it.devices.isEmpty() }.map { it.poolName }
-                    raiseError<Unit>(IllegalStateException("No devices found in pools $emptyPools")).bind()
+                    IllegalStateException("No devices found in pools $emptyPools").left().bind<Unit>()
                 }
             }
 
@@ -191,11 +199,11 @@ internal abstract class GordonTestTask @Inject constructor(
 
             val htmlReportPath = testResults.htmlReport().write(reportDirectory.get().asFile).bind()
 
-            pools.flatMap { it.devices }.uninstall(
+            pools.flatMap { it.devices }.safeUninstall(
                 dispatcher = Dispatchers.Default,
                 applicationPackage = applicationPackage,
                 instrumentationPackage = instrumentationPackage.get()
-            ).bind()
+            )
 
             val testRunFailed =
                 testResults.getTestCasesByResult { it is TestResult.Failed || it is TestResult.NotRun }.isNotEmpty()
@@ -209,11 +217,9 @@ internal abstract class GordonTestTask @Inject constructor(
             logger.log(summaryLogLevel, testResults.summary())
 
             if (testRunFailed) {
-                raiseError<Unit>(RuntimeException("Test run failed. See the report at: file://$htmlReportPath")).bind()
+                RuntimeException("Test run failed. See the report at: file://$htmlReportPath").left().bind<Unit>()
             }
         }
-
-        runTests.unsafeRunSync()
     }
 }
 

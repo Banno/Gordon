@@ -29,25 +29,26 @@ internal fun runTest(
     val command = "am instrument $flags $options $targetInstrumentation"
 
     return device.executeShellWithTimeout(testTimeoutMillis, command)
-        .attempt()
-        .unsafeRunSync()
         .fold(
             {
-                logger.error("$progress -> ${device.serial}: ${test.classAndMethodName}: UNABLE TO RUN")
-                TestResult.NotRun
+                when (it) {
+                    is AdbTimeoutException -> {
+                        logger.error("$progress -> ${device.serial}: ${test.classAndMethodName}: TIMED OUT")
+                        TestResult.Failed(null, "Test timed out", device.serial)
+                    }
+                    else -> {
+                        logger.error("$progress -> ${device.serial}: ${test.classAndMethodName}: UNABLE TO RUN")
+                        TestResult.NotRun
+                    }
+                }
             }
-        ) { shellOutput: String? ->
+        ) { shellOutput ->
             val testTime = shellOutput
-                ?.substringAfter("Time: ")
-                ?.substringBefore("\n")
-                ?.toFloatOrNull()
+                .substringAfter("Time: ")
+                .substringBefore("\n")
+                .toFloatOrNull()
 
             when {
-                shellOutput == null -> {
-                    logger.error("$progress -> ${device.serial}: ${test.classAndMethodName}: TIMED OUT")
-                    TestResult.Failed(testTime, "Test timed out", device.serial)
-                }
-
                 shellOutput.matches(Regex(".*OK \\([1-9][0-9]* tests?\\)$", RegexOption.DOT_MATCHES_ALL)) -> {
                     logger.lifecycle("$progress -> ${device.serial}: ${test.classAndMethodName}: PASSED")
                     TestResult.Passed(testTime)

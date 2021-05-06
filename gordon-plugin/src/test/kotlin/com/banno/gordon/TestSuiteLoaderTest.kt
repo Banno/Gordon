@@ -9,9 +9,9 @@ class TestSuiteLoaderTest {
     fun loadingTestSuite() {
         val instrumentation = File("src/test/assets/test_app-debug-androidTest.apk")
 
-        val testSuite = loadTestSuite(instrumentation).unsafeRunSync()
+        val testSuite = loadTestSuite(instrumentation).orNull()
 
-        testSuite.sortedBy { it.fullyQualifiedClassName + it.methodName } shouldEqual listOf(
+        testSuite?.sortedBy { it.fullyQualifiedClassName + it.methodName } shouldEqual listOf(
             TestCase("com.banno.android.gordontest.AnnotatedTestClass", "annotatedA", false, setOf("androidx.test.filters.FlakyTest", "org.junit.Test")),
             TestCase("com.banno.android.gordontest.AnnotatedTestClass", "annotatedB", false, setOf("androidx.test.filters.FlakyTest", "androidx.test.filters.SmallTest", "org.junit.Test")),
             TestCase("com.banno.android.gordontest.AnnotatedTest", "annotatedA", false, setOf("androidx.test.filters.LargeTest", "org.junit.Test")),
