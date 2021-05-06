@@ -24,7 +24,7 @@ dependencies {
 
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
     implementation("com.android.tools.build:bundletool:1.5.0")
-    implementation("org.smali:dexlib2:2.4.0")
+    implementation("org.smali:dexlib2:2.5.2")
     implementation("com.github.vidstige:jadb:v1.1.0")
 
     implementation("io.arrow-kt:arrow-core-data:0.11.0")
