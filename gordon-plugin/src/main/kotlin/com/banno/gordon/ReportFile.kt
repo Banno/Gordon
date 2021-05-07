@@ -13,7 +13,7 @@ internal fun ReportFile.write(directory: File): Either<Throwable, String> = Eith
         .absolutePath
 }
 
-internal suspend fun List<ReportFile>.write(directory: File): Either<Throwable, Unit> = either {
+internal fun List<ReportFile>.write(directory: File): Either<Throwable, Unit> = either.eager {
     forEach { it.write(directory).bind() }
 }
 

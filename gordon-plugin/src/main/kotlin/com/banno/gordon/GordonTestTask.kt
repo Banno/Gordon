@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.computations.either
 import arrow.core.left
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
@@ -130,16 +129,14 @@ internal abstract class GordonTestTask @Inject constructor(
     }
 
     @TaskAction
-    private fun runTestsBlocking() {
-        runBlocking {
-            runTests().fold({ throw it }, {})
-        }
+    private fun runTests() {
+        runTestsCatching().fold({ throw it }, {})
     }
 
-    private suspend fun runTests(): Either<Throwable, Unit> {
+    private fun runTestsCatching(): Either<Throwable, Unit> {
         val instrumentationApk = instrumentationApkDir.asFileTree.single { it.extension == "apk" }
 
-        return either {
+        return either.eager {
             testResultsDirectory.get().asFile.clear().bind()
             reportDirectory.get().asFile.clear().bind()
 

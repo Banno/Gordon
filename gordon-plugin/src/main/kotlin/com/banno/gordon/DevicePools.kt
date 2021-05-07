@@ -12,11 +12,11 @@ internal data class DevicePool(
     val devices: List<JadbDevice>
 )
 
-internal suspend fun calculatePools(
+internal fun calculatePools(
     adb: JadbConnection,
     strategy: PoolingStrategy,
     tabletShortestWidthDp: Int?
-): Either<Throwable, List<DevicePool>> = either {
+): Either<Throwable, List<DevicePool>> = either.eager {
     val allDevices = adb.getAllDevices().bind()
 
     when (strategy) {

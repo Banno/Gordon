@@ -158,24 +158,26 @@ internal fun List<JadbDevice>.reinstall(
     signingConfig: SigningConfig,
     instrumentationApk: File,
     installTimeoutMillis: Long
-): Either<Throwable, Unit> = runBlocking {
-    either {
-        val applicationApkSet = applicationAab?.let { buildApkSet(it, signingConfig) }?.bind()
+): Either<Throwable, Unit> = either.eager {
+    val applicationApkSet = applicationAab?.let { buildApkSet(it, signingConfig) }?.bind()
 
+    runBlocking {
         map { device ->
             async(context = dispatcher, start = CoroutineStart.LAZY) {
-                val packageManager = PackageManager(device)
+                either.eager<Throwable, Unit> {
+                    val packageManager = PackageManager(device)
 
-                if (applicationPackage != null && applicationApkSet != null) {
-                    logger.lifecycle("${device.serial}: installing $applicationPackage")
-                    packageManager.safeUninstall(applicationPackage)
-                    device.installApkSet(installTimeoutMillis, applicationApkSet, onDemandDynamicModuleName).bind()
+                    if (applicationPackage != null && applicationApkSet != null) {
+                        logger.lifecycle("${device.serial}: installing $applicationPackage")
+                        packageManager.safeUninstall(applicationPackage)
+                        device.installApkSet(installTimeoutMillis, applicationApkSet, onDemandDynamicModuleName).bind()
+                    }
+
+                    logger.lifecycle("${device.serial}: installing $instrumentationPackage")
+                    packageManager.safeUninstall(instrumentationPackage)
+                    device.installApk(installTimeoutMillis, instrumentationApk, "-d", "-r", "-t").bind()
                 }
-
-                logger.lifecycle("${device.serial}: installing $instrumentationPackage")
-                packageManager.safeUninstall(instrumentationPackage)
-                device.installApk(installTimeoutMillis, instrumentationApk, "-d", "-r", "-t").bind()
             }
         }.awaitAll()
-    }
+    }.forEach { it.bind() }
 }
