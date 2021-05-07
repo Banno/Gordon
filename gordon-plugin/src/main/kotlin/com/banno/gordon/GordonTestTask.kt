@@ -24,7 +24,6 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.kotlin.dsl.property
-import se.vidstige.jadb.JadbConnection
 import java.io.File
 import javax.inject.Inject
 
@@ -140,8 +139,9 @@ internal abstract class GordonTestTask @Inject constructor(
             testResultsDirectory.get().asFile.clear().bind()
             reportDirectory.get().asFile.clear().bind()
 
+            val adb = initializeDefaultAdbServer().bind()
             val pools = calculatePools(
-                JadbConnection(),
+                adb,
                 poolingStrategy.get(),
                 tabletShortestWidthDp.get().takeIf { it > -1 }
             ).bind()
@@ -178,7 +178,8 @@ internal abstract class GordonTestTask @Inject constructor(
                 applicationAab = applicationAab,
                 signingConfig = signingConfig,
                 instrumentationApk = instrumentationApk,
-                installTimeoutMillis = installTimeoutMillis.get()
+                installTimeoutMillis = installTimeoutMillis.get(),
+                adb = adb
             ).bind()
 
             val testResults = runAllTests(
@@ -198,6 +199,7 @@ internal abstract class GordonTestTask @Inject constructor(
 
             pools.flatMap { it.devices }.safeUninstall(
                 dispatcher = Dispatchers.Default,
+                timeoutMillis = installTimeoutMillis.get(),
                 applicationPackage = applicationPackage,
                 instrumentationPackage = instrumentationPackage.get()
             )

@@ -24,7 +24,6 @@ pluginManagement {
         gradlePluginPortal()
         google()
         mavenCentral()
-        maven("https://www.jitpack.io")
     }
 
     plugins {
@@ -49,7 +48,6 @@ buildscript {
         gradlePluginPortal()
         google()
         mavenCentral()
-        maven { url "https://jitpack.io" }
     }
 
     dependencies {
@@ -73,7 +71,6 @@ repositories {
     gradlePluginPortal()
     google()
     mavenCentral()
-    maven("https://www.jitpack.io")
 }
 
 dependencies {

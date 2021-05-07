@@ -3,60 +3,63 @@ package com.banno.gordon
 import arrow.core.Either
 import arrow.core.computations.either
 import arrow.core.flatMap
-import arrow.core.left
 import com.android.tools.build.bundletool.commands.BuildApksCommand
 import com.android.tools.build.bundletool.commands.InstallApksCommand
+import com.android.tools.build.bundletool.device.AdbServer
 import com.android.tools.build.bundletool.device.DdmlibAdbServer
+import com.android.tools.build.bundletool.device.Device
 import com.android.tools.build.bundletool.flags.FlagParser
+import com.android.tools.build.bundletool.model.utils.DefaultSystemEnvironmentProvider
+import com.android.tools.build.bundletool.model.utils.SdkToolsLocator
+import com.google.common.collect.ImmutableList
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeoutOrNull
 import org.gradle.api.logging.Logger
-import se.vidstige.jadb.JadbConnection
-import se.vidstige.jadb.JadbDevice
-import se.vidstige.jadb.RemoteFile
-import se.vidstige.jadb.managers.Package
-import se.vidstige.jadb.managers.PackageManager
+import shadow.bundletool.com.android.ddmlib.CollectingOutputReceiver
+import shadow.bundletool.com.android.ddmlib.ShellCommandUnresponsiveException
+import shadow.bundletool.com.android.ddmlib.TimeoutException
 import java.io.File
+import java.time.Duration
+import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
-internal class AdbTimeoutException : Exception()
+internal class AdbTimeoutException(cause: Throwable) : Exception(cause)
 
-internal fun JadbConnection.getAllDevices(): Either<Throwable, List<JadbDevice>> = Either.catch {
-    devices.toList()
+internal fun initializeDefaultAdbServer(): Either<Throwable, AdbServer> = Either.catch {
+    val adbPath = SdkToolsLocator()
+        .locateAdb(DefaultSystemEnvironmentProvider())
+        .orElseThrow { IllegalStateException("Unable to locate ADB. Please define ANDROID_HOME or PATH environment variable.") }
+    DdmlibAdbServer
+        .getInstance()
+        .apply { init(adbPath) }
 }
 
-internal fun JadbDevice.safeExecuteShell(command: String, vararg args: String): Either<Throwable, String> = Either.catch {
-    executeShell(command, *args)
-        .use { it.reader().use { reader -> reader.readText() } }
+internal fun AdbServer.getAllDevices(): Either<Throwable, Set<Device>> = Either.catch {
+    devices.toSet()
+}
+
+internal fun Device.executeShellWithTimeout(timeoutMillis: Long, command: String): Either<Throwable, String> = Either.catch {
+    CollectingOutputReceiver()
+        .also { executeShellCommand(command, it, timeoutMillis, TimeUnit.MILLISECONDS) }
+        .output
         .trim()
-}
-
-internal fun JadbDevice.executeShellWithTimeout(
-    timeoutMillis: Long,
-    command: String,
-    vararg args: String
-): Either<Throwable, String> = Either.catchAndFlatten {
-    val deferred = CoroutineScope(Dispatchers.IO).async { safeExecuteShell(command, *args) }
-
-    runBlocking {
-        withTimeoutOrNull(timeoutMillis) {
-            deferred.await()
-        } ?: AdbTimeoutException().left()
+}.mapLeft {
+    when (it) {
+        is ShellCommandUnresponsiveException,
+        is TimeoutException -> AdbTimeoutException(it)
+        else -> it
     }
 }
 
-internal fun JadbDevice.isTablet(tabletShortestWidthDp: Int?): Either<Throwable, Boolean> = when (tabletShortestWidthDp) {
-    null -> executeShellWithTimeout(20_000, "getprop", "ro.build.characteristics").map { it.contains("tablet") }
+internal fun Device.isTablet(tabletShortestWidthDp: Int?): Either<Throwable, Boolean> = when (tabletShortestWidthDp) {
+    null -> executeShellWithTimeout(20_000, "getprop ro.build.characteristics").map { it.contains("tablet") }
     else ->
-        executeShellWithTimeout(20_000, "wm", "size")
+        executeShellWithTimeout(20_000, "wm size")
             .flatMap { sizeString ->
-                executeShellWithTimeout(20_000, "wm", "density").map { sizeString to it }
+                executeShellWithTimeout(20_000, "wm density").map { sizeString to it }
             }
             .map { (sizeString, densityString) ->
                 val shortestWidthPixels = min(
@@ -71,26 +74,21 @@ internal fun JadbDevice.isTablet(tabletShortestWidthDp: Int?): Either<Throwable,
             }
 }
 
-internal fun JadbDevice.installApk(timeoutMillis: Long, apk: File, vararg options: String): Either<Throwable, Unit> = Either.catchAndFlatten {
-    val remoteFile = RemoteFile("/data/local/tmp/" + apk.name)
-
-    push(apk, remoteFile)
-
-    val shellResult = executeShellWithTimeout(timeoutMillis, "pm", "install", *options, remoteFile.path)
-
-    PackageManager(this@installApk).remove(remoteFile)
-
-    shellResult.flatMap { result ->
-        Either.conditionally(
-            test = result.contains("Success"),
-            ifFalse = { IllegalStateException(result) },
-            ifTrue = {}
+internal fun Device.installApk(timeoutMillis: Long, apk: File): Either<Throwable, Unit> =
+    Either.catch({ IllegalStateException("Failed to install ${apk.name} on $serialNumber", it) }) {
+        installApks(
+            ImmutableList.of(apk.toPath()),
+            Device.InstallOptions.builder()
+                .setTimeout(Duration.ofMillis(timeoutMillis))
+                .setAllowDowngrade(true)
+                .setAllowReinstall(true)
+                .setAllowTestOnly(true)
+                .build()
         )
     }
-}.mapLeft { IllegalStateException("Failed to install ${apk.name} on $serial", it) }
 
-internal fun JadbDevice.installApkSet(timeoutMillis: Long, apkSet: File, onDemandDynamicModuleName: String?): Either<Throwable, Unit> =
-    Either.catch {
+internal fun Device.installApkSet(adb: AdbServer, timeoutMillis: Long, apkSet: File, onDemandDynamicModuleName: String?): Either<Throwable, Unit> =
+    Either.catch({ IllegalStateException("Failed to install ${apkSet.name} on $serialNumber", it) }) {
         InstallApksCommand.fromFlags(
             FlagParser().parse(
                 *listOfNotNull(
@@ -99,15 +97,15 @@ internal fun JadbDevice.installApkSet(timeoutMillis: Long, apkSet: File, onDeman
                     "--apks=${apkSet.path}",
                     "--allow-downgrade",
                     "--allow-test-only",
-                    "--device-id=$serial",
+                    "--device-id=$serialNumber",
                     onDemandDynamicModuleName?.let { "--modules=$it" }
                 ).toTypedArray()
             ),
-            DdmlibAdbServer.getInstance()
+            adb
         ).execute()
-    }.mapLeft { IllegalStateException("Failed to install ${apkSet.name} on $serial", it) }
+    }
 
-internal fun buildApkSet(aabFile: File, signingConfig: SigningConfig): Either<Throwable, File> = Either.catch {
+internal fun buildApkSet(adb: AdbServer, aabFile: File, signingConfig: SigningConfig): Either<Throwable, File> = Either.catch {
     File.createTempFile(aabFile.nameWithoutExtension, ".apks").also { apksFile ->
         BuildApksCommand.fromFlags(
             FlagParser().parse(
@@ -122,33 +120,34 @@ internal fun buildApkSet(aabFile: File, signingConfig: SigningConfig): Either<Th
                     signingConfig.keyPassword?.let { "--key-pass=pass:$it" }
                 ).toTypedArray()
             ),
-            DdmlibAdbServer.getInstance()
+            adb
         ).execute()
     }
 }
 
-internal fun PackageManager.safeUninstall(packageName: String) {
-    Either.catch { uninstall(Package(packageName)) }
+internal fun Device.safeUninstall(timeoutMillis: Long, packageName: String) {
+    executeShellWithTimeout(timeoutMillis, "pm uninstall $packageName")
 }
 
-internal fun List<JadbDevice>.safeUninstall(
+internal fun List<Device>.safeUninstall(
     dispatcher: CoroutineDispatcher,
+    timeoutMillis: Long,
     applicationPackage: String?,
     instrumentationPackage: String
 ) {
     runBlocking {
         map { device ->
             async(context = dispatcher, start = CoroutineStart.LAZY) {
-                PackageManager(device).run {
-                    applicationPackage?.let(::safeUninstall)
-                    safeUninstall(instrumentationPackage)
+                device.run {
+                    applicationPackage?.let { safeUninstall(timeoutMillis, it) }
+                    safeUninstall(timeoutMillis, instrumentationPackage)
                 }
             }
         }.awaitAll()
     }
 }
 
-internal fun List<JadbDevice>.reinstall(
+internal fun List<Device>.reinstall(
     dispatcher: CoroutineDispatcher,
     logger: Logger,
     applicationPackage: String?,
@@ -157,25 +156,24 @@ internal fun List<JadbDevice>.reinstall(
     applicationAab: File?,
     signingConfig: SigningConfig,
     instrumentationApk: File,
-    installTimeoutMillis: Long
+    installTimeoutMillis: Long,
+    adb: AdbServer
 ): Either<Throwable, Unit> = either.eager {
-    val applicationApkSet = applicationAab?.let { buildApkSet(it, signingConfig) }?.bind()
+    val applicationApkSet = applicationAab?.let { buildApkSet(adb, it, signingConfig) }?.bind()
 
     runBlocking {
         map { device ->
             async(context = dispatcher, start = CoroutineStart.LAZY) {
                 either.eager<Throwable, Unit> {
-                    val packageManager = PackageManager(device)
-
                     if (applicationPackage != null && applicationApkSet != null) {
-                        logger.lifecycle("${device.serial}: installing $applicationPackage")
-                        packageManager.safeUninstall(applicationPackage)
-                        device.installApkSet(installTimeoutMillis, applicationApkSet, onDemandDynamicModuleName).bind()
+                        logger.lifecycle("${device.serialNumber}: installing $applicationPackage")
+                        device.safeUninstall(installTimeoutMillis, applicationPackage)
+                        device.installApkSet(adb, installTimeoutMillis, applicationApkSet, onDemandDynamicModuleName).bind()
                     }
 
-                    logger.lifecycle("${device.serial}: installing $instrumentationPackage")
-                    packageManager.safeUninstall(instrumentationPackage)
-                    device.installApk(installTimeoutMillis, instrumentationApk, "-d", "-r", "-t").bind()
+                    logger.lifecycle("${device.serialNumber}: installing $instrumentationPackage")
+                    device.safeUninstall(installTimeoutMillis, instrumentationPackage)
+                    device.installApk(installTimeoutMillis, instrumentationApk).bind()
                 }
             }
         }.awaitAll()

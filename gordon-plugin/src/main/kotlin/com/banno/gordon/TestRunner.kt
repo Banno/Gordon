@@ -1,7 +1,7 @@
 package com.banno.gordon
 
+import com.android.tools.build.bundletool.device.Device
 import org.gradle.api.logging.Logger
-import se.vidstige.jadb.JadbDevice
 
 internal fun runTest(
     logger: Logger,
@@ -9,7 +9,7 @@ internal fun runTest(
     instrumentationRunnerOptions: InstrumentationRunnerOptions,
     testTimeoutMillis: Long,
     test: TestCase,
-    device: JadbDevice,
+    device: Device,
     progress: String
 ): TestResult {
     val targetInstrumentation = "$instrumentationPackage/${instrumentationRunnerOptions.testInstrumentationRunner}"
@@ -33,11 +33,11 @@ internal fun runTest(
             {
                 when (it) {
                     is AdbTimeoutException -> {
-                        logger.error("$progress -> ${device.serial}: ${test.classAndMethodName}: TIMED OUT")
-                        TestResult.Failed(null, "Test timed out", device.serial)
+                        logger.error("$progress -> ${device.serialNumber}: ${test.classAndMethodName}: TIMED OUT")
+                        TestResult.Failed(null, "Test timed out", device.serialNumber)
                     }
                     else -> {
-                        logger.error("$progress -> ${device.serial}: ${test.classAndMethodName}: UNABLE TO RUN")
+                        logger.error("$progress -> ${device.serialNumber}: ${test.classAndMethodName}: UNABLE TO RUN")
                         TestResult.NotRun
                     }
                 }
@@ -50,19 +50,19 @@ internal fun runTest(
 
             when {
                 shellOutput.matches(Regex(".*OK \\([1-9][0-9]* tests?\\)$", RegexOption.DOT_MATCHES_ALL)) -> {
-                    logger.lifecycle("$progress -> ${device.serial}: ${test.classAndMethodName}: PASSED")
+                    logger.lifecycle("$progress -> ${device.serialNumber}: ${test.classAndMethodName}: PASSED")
                     TestResult.Passed(testTime)
                 }
 
                 shellOutput.endsWith("OK (0 tests)") -> {
-                    logger.lifecycle("$progress -> ${device.serial}: ${test.classAndMethodName}: IGNORED")
+                    logger.lifecycle("$progress -> ${device.serialNumber}: ${test.classAndMethodName}: IGNORED")
                     TestResult.Ignored
                 }
 
                 else -> {
                     val failureOutput = shellOutput.substringBeforeLast("There was 1 failure")
-                    logger.error("$progress -> ${device.serial}: ${test.classAndMethodName}: FAILED\n$failureOutput\n")
-                    TestResult.Failed(testTime, failureOutput, device.serial)
+                    logger.error("$progress -> ${device.serialNumber}: ${test.classAndMethodName}: FAILED\n$failureOutput\n")
+                    TestResult.Failed(testTime, failureOutput, device.serialNumber)
                 }
             }
         }

@@ -1,6 +1,7 @@
 package com.banno.gordon
 
 import arrow.core.Either
+import com.android.tools.build.bundletool.device.Device
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
 import org.gradle.api.logging.Logger
-import se.vidstige.jadb.JadbDevice
 import kotlin.coroutines.CoroutineContext
 
 internal fun runAllTests(
@@ -32,7 +32,7 @@ internal fun runAllTests(
     runBlocking {
         allPools.map { pool ->
             async(context = dispatcher, start = CoroutineStart.LAZY) {
-                val deviceSerials = pool.devices.map { it.serial }.toSet()
+                val deviceSerials = pool.devices.map { it.serialNumber }.toSet()
                 val testResults =
                     allTestCases.associateWith<TestCase, TestResult> { TestResult.NotRun }
                         .toMutableMap()
@@ -132,14 +132,14 @@ private fun CoroutineScope.runTestsInPool(
     instrumentationPackage: String,
     instrumentationRunnerOptions: InstrumentationRunnerOptions,
     testTimeoutMillis: Long,
-    devices: List<JadbDevice>,
+    devices: List<Device>,
     testDistributor: TestDistributor,
     totalTests: Int? = null
 ): List<Deferred<Map<TestCase, TestResult>>> {
     var index = 0
     return devices.map { device ->
         async(context = dispatcher, start = CoroutineStart.LAZY) {
-            testDistributor.testCasesChannel(device.serial)
+            testDistributor.testCasesChannel(device.serialNumber)
                 .consumeAsFlow()
                 .map { test ->
                     index++
