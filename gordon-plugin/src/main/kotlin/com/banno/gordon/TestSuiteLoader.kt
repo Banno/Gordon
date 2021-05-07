@@ -1,6 +1,6 @@
 package com.banno.gordon
 
-import arrow.fx.IO
+import arrow.core.Either
 import org.jf.dexlib2.AccessFlags
 import org.jf.dexlib2.DexFileFactory
 import org.jf.dexlib2.iface.Annotatable
@@ -8,7 +8,7 @@ import org.jf.dexlib2.iface.BasicAnnotation
 import org.jf.dexlib2.iface.reference.TypeReference
 import java.io.File
 
-internal fun loadTestSuite(instrumentationApk: File): IO<List<TestCase>> = IO {
+internal fun loadTestSuite(instrumentationApk: File): Either<Throwable, List<TestCase>> = Either.catch {
     DexFileFactory
         .loadDexContainer(instrumentationApk, null)
         .run { dexEntryNames.map { getEntry(it)!!.dexFile } }

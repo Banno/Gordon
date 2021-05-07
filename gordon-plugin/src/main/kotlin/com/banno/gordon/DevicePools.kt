@@ -1,7 +1,7 @@
 package com.banno.gordon
 
-import arrow.fx.IO
-import arrow.fx.extensions.fx
+import arrow.core.Either
+import arrow.core.computations.either
 import se.vidstige.jadb.JadbConnection
 import se.vidstige.jadb.JadbDevice
 
@@ -16,7 +16,7 @@ internal fun calculatePools(
     adb: JadbConnection,
     strategy: PoolingStrategy,
     tabletShortestWidthDp: Int?
-): IO<List<DevicePool>> = IO.fx {
+): Either<Throwable, List<DevicePool>> = either.eager {
     val allDevices = adb.getAllDevices().bind()
 
     when (strategy) {

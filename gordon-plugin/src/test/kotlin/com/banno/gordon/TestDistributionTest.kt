@@ -4,16 +4,16 @@ import com.banno.gordon.TestResult.Failed
 import com.banno.gordon.TestResult.Flaky
 import com.banno.gordon.TestResult.NotRun
 import com.banno.gordon.TestResult.Passed
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.anyVararg
-import com.nhaarman.mockitokotlin2.check
-import com.nhaarman.mockitokotlin2.doAnswer
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.times
-import com.nhaarman.mockitokotlin2.verify
 import kotlinx.coroutines.Dispatchers
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyVararg
+import org.mockito.kotlin.check
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import se.vidstige.jadb.JadbDevice
 import java.io.ByteArrayInputStream
 import java.util.UUID
@@ -64,7 +64,7 @@ class TestDistributionTest {
             allPools = pools,
             retryQuota = 0,
             testTimeoutMillis = 1000
-        ).unsafeRunSync()
+        ).orNull()
 
         actual shouldEqual mapOf(
             "First" to mapOf(
@@ -118,7 +118,7 @@ class TestDistributionTest {
             allPools = pools,
             retryQuota = 1,
             testTimeoutMillis = 1000
-        ).unsafeRunSync()
+        ).orNull()
 
         actual shouldEqual mapOf(
             "First" to mapOf(
@@ -156,7 +156,7 @@ class TestDistributionTest {
             allPools = pools,
             retryQuota = 1,
             testTimeoutMillis = 1000
-        ).unsafeRunSync()
+        ).orNull()
 
         actual shouldEqual mapOf(
             "First" to mapOf(
@@ -196,7 +196,7 @@ class TestDistributionTest {
             allPools = pools,
             retryQuota = 2,
             testTimeoutMillis = 1000
-        ).unsafeRunSync()
+        ).orNull()
 
         actual shouldEqual mapOf(
             "First" to mapOf(
@@ -236,7 +236,7 @@ class TestDistributionTest {
             allPools = pools,
             retryQuota = 2,
             testTimeoutMillis = 1000
-        ).unsafeRunSync()
+        ).orNull()
 
         actual shouldEqual mapOf(
             "First" to mapOf(
@@ -272,7 +272,7 @@ class TestDistributionTest {
 
         val pools = listOf(DevicePool("First", listOf(device, device2)))
 
-        val actual = runAllTests(
+        runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mock(),
             instrumentationPackage = "instrumentationPackage",
@@ -281,7 +281,7 @@ class TestDistributionTest {
             allPools = pools,
             retryQuota = 1,
             testTimeoutMillis = 1000
-        ).unsafeRunSync()
+        )
 
         verify(device, times(1)).executeShell(
             check<String> { it.contains("A#methodOne") },
@@ -317,7 +317,7 @@ class TestDistributionTest {
             allPools = pools,
             retryQuota = 1,
             testTimeoutMillis = 1000
-        ).unsafeRunSync()
+        ).orNull()
 
         actual shouldEqual mapOf(
             "First" to mapOf(
@@ -347,7 +347,7 @@ class TestDistributionTest {
             allPools = pools,
             retryQuota = 1,
             testTimeoutMillis = 1000
-        ).unsafeRunSync()
+        ).orNull()
 
         actual shouldEqual mapOf(
             "First" to mapOf(
@@ -382,7 +382,7 @@ class TestDistributionTest {
             allPools = pools,
             retryQuota = 3,
             testTimeoutMillis = 1000
-        ).unsafeRunSync()
+        ).orNull()
 
         actual shouldEqual mapOf(
             "First" to mapOf(
@@ -418,7 +418,7 @@ class TestDistributionTest {
             allPools = pools,
             retryQuota = 1,
             testTimeoutMillis = 1000
-        ).unsafeRunSync()
+        ).orNull()
 
         actual shouldEqual mapOf(
             "First" to mapOf(
@@ -448,7 +448,7 @@ class TestDistributionTest {
                     any<String>(),
                     anyVararg()
                 )
-            } doAnswer { invocation ->
+            } doAnswer {
                 val response = responses[index]
 
                 index++
@@ -473,7 +473,7 @@ class TestDistributionTest {
                     any<String>(),
                     anyVararg()
                 )
-            } doAnswer { _ -> ByteArrayInputStream("OK (1 test)".toByteArray()) }
+            } doAnswer { ByteArrayInputStream("OK (1 test)".toByteArray()) }
         }
     }
 }

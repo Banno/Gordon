@@ -1,8 +1,8 @@
 package com.banno.gordon
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import se.vidstige.jadb.JadbConnection
 import se.vidstige.jadb.JadbDevice
 import java.io.ByteArrayInputStream
@@ -22,7 +22,7 @@ class CalculatePoolsTest {
             on { this.devices } doReturn devices
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PoolPerDevice, null).unsafeRunSync()
+        val actual = calculatePools(jadbConnection, PoolingStrategy.PoolPerDevice, null).orNull()
 
         actual shouldEqual devices.map { DevicePool(it.serial, listOf(it)) }
     }
@@ -39,7 +39,7 @@ class CalculatePoolsTest {
             on { this.devices } doReturn devices
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.SinglePool, null).unsafeRunSync()
+        val actual = calculatePools(jadbConnection, PoolingStrategy.SinglePool, null).orNull()
 
         actual shouldEqual listOf(DevicePool("All-Devices", devices))
     }
@@ -60,7 +60,7 @@ class CalculatePoolsTest {
             on { this.devices } doReturn tablets + phones
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, null).unsafeRunSync()
+        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, null).orNull()
 
         actual shouldEqual listOf(
             DevicePool("Tablets", tablets),
@@ -86,7 +86,7 @@ class CalculatePoolsTest {
             on { this.devices } doReturn tablets + phones
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, shortestWidthDp).unsafeRunSync()
+        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, shortestWidthDp).orNull()
 
         actual shouldEqual listOf(
             DevicePool("Tablets", tablets),
@@ -121,7 +121,7 @@ class CalculatePoolsTest {
                 )
             ),
             null
-        ).unsafeRunSync()
+        ).orNull()
 
         actual shouldEqual listOf(
             DevicePool("Pool1", listOf(firstDevice, fourthDevice)),

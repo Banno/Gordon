@@ -1,6 +1,6 @@
 package com.banno.gordon
 
-import arrow.fx.IO
+import arrow.core.Either
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -28,7 +28,7 @@ internal fun runAllTests(
     allPools: List<DevicePool>,
     retryQuota: Int,
     testTimeoutMillis: Long
-): IO<Map<PoolName, Map<TestCase, TestResult>>> = IO {
+): Either<Throwable, Map<PoolName, Map<TestCase, TestResult>>> = Either.catch {
     runBlocking {
         allPools.map { pool ->
             async(context = dispatcher, start = CoroutineStart.LAZY) {
