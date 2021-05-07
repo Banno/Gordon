@@ -1,66 +1,69 @@
 package com.banno.gordon
 
+import com.android.tools.build.bundletool.device.AdbServer
+import com.android.tools.build.bundletool.device.Device
+import com.google.common.collect.ImmutableList
+import io.mockk.MockKStubScope
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
 import org.junit.Test
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
-import se.vidstige.jadb.JadbConnection
-import se.vidstige.jadb.JadbDevice
-import java.io.ByteArrayInputStream
+import shadow.bundletool.com.android.ddmlib.IShellOutputReceiver
 import java.util.UUID
 
 class CalculatePoolsTest {
 
     @Test
     fun poolPerDeviceStrategy() {
-        val devices = listOf(
-            anyJadbDevice(),
-            anyJadbDevice(),
-            anyJadbDevice()
+        val allDevices = listOf(
+            anyDevice(),
+            anyDevice(),
+            anyDevice()
         )
 
-        val jadbConnection: JadbConnection = mock {
-            on { this.devices } doReturn devices
+        val adb: AdbServer = mockk {
+            every { devices } returns ImmutableList.copyOf(allDevices)
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PoolPerDevice, null).orNull()
+        val actual = calculatePools(adb, PoolingStrategy.PoolPerDevice, null).orNull()
 
-        actual shouldEqual devices.map { DevicePool(it.serial, listOf(it)) }
+        actual shouldEqual allDevices.map { DevicePool(it.serialNumber, listOf(it)) }
     }
 
     @Test
     fun singlePoolStrategy() {
-        val devices = listOf(
-            anyJadbDevice(),
-            anyJadbDevice(),
-            anyJadbDevice()
+        val allDevices = listOf(
+            anyDevice(),
+            anyDevice(),
+            anyDevice()
         )
 
-        val jadbConnection: JadbConnection = mock {
-            on { this.devices } doReturn devices
+        val adb: AdbServer = mockk {
+            every { devices } returns ImmutableList.copyOf(allDevices)
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.SinglePool, null).orNull()
+        val actual = calculatePools(adb, PoolingStrategy.SinglePool, null).orNull()
 
-        actual shouldEqual listOf(DevicePool("All-Devices", devices))
+        actual shouldEqual listOf(DevicePool("All-Devices", allDevices))
     }
 
     @Test
     fun phonesAndTabletsStrategy() {
         val tablets = listOf(
-            anyJadbDevice(isTablet = true),
-            anyJadbDevice(isTablet = true)
+            anyDevice(isTablet = true),
+            anyDevice(isTablet = true)
         )
 
         val phones = listOf(
-            anyJadbDevice(isTablet = false),
-            anyJadbDevice(isTablet = false)
+            anyDevice(isTablet = false),
+            anyDevice(isTablet = false)
         )
 
-        val jadbConnection: JadbConnection = mock {
-            on { this.devices } doReturn tablets + phones
+        val adb: AdbServer = mockk {
+            every { devices } returns ImmutableList.copyOf(tablets + phones)
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, null).orNull()
+        val actual = calculatePools(adb, PoolingStrategy.PhonesAndTablets, null).orNull()
 
         actual shouldEqual listOf(
             DevicePool("Tablets", tablets),
@@ -73,20 +76,20 @@ class CalculatePoolsTest {
         val shortestWidthDp = 720
 
         val tablets = listOf(
-            anyJadbDevice(tabletShortestWidthDp = shortestWidthDp),
-            anyJadbDevice(tabletShortestWidthDp = shortestWidthDp + 200)
+            anyDevice(tabletShortestWidthDp = shortestWidthDp),
+            anyDevice(tabletShortestWidthDp = shortestWidthDp + 200)
         )
 
         val phones = listOf(
-            anyJadbDevice(tabletShortestWidthDp = shortestWidthDp - 1),
-            anyJadbDevice(tabletShortestWidthDp = shortestWidthDp - 200)
+            anyDevice(tabletShortestWidthDp = shortestWidthDp - 1),
+            anyDevice(tabletShortestWidthDp = shortestWidthDp - 200)
         )
 
-        val jadbConnection: JadbConnection = mock {
-            on { this.devices } doReturn tablets + phones
+        val adb: AdbServer = mockk {
+            every { devices } returns ImmutableList.copyOf(tablets + phones)
         }
 
-        val actual = calculatePools(jadbConnection, PoolingStrategy.PhonesAndTablets, shortestWidthDp).orNull()
+        val actual = calculatePools(adb, PoolingStrategy.PhonesAndTablets, shortestWidthDp).orNull()
 
         actual shouldEqual listOf(
             DevicePool("Tablets", tablets),
@@ -96,14 +99,14 @@ class CalculatePoolsTest {
 
     @Test
     fun manualStrategy() {
-        val firstDevice = anyJadbDevice(serial = "First")
-        val secondDevice = anyJadbDevice(serial = "Second")
-        val thirdDevice = anyJadbDevice(serial = "Third")
-        val fourthDevice = anyJadbDevice(serial = "Fourth")
-        val fifthDevice = anyJadbDevice(serial = "Fifth")
+        val firstDevice = anyDevice(serial = "First")
+        val secondDevice = anyDevice(serial = "Second")
+        val thirdDevice = anyDevice(serial = "Third")
+        val fourthDevice = anyDevice(serial = "Fourth")
+        val fifthDevice = anyDevice(serial = "Fifth")
 
-        val jadbConnection: JadbConnection = mock {
-            on { this.devices } doReturn listOf(
+        val adb: AdbServer = mockk {
+            every { devices } returns ImmutableList.of(
                 firstDevice,
                 secondDevice,
                 thirdDevice,
@@ -113,7 +116,7 @@ class CalculatePoolsTest {
         }
 
         val actual = calculatePools(
-            jadbConnection,
+            adb,
             PoolingStrategy.Manual(
                 mapOf(
                     "Pool1" to setOf("First", "Fourth", "Nonsense"),
@@ -129,22 +132,29 @@ class CalculatePoolsTest {
         )
     }
 
-    private fun anyJadbDevice(
+    private fun anyDevice(
         serial: String = UUID.randomUUID().toString(),
         isTablet: Boolean = false,
         tabletShortestWidthDp: Int? = null
-    ): JadbDevice {
-        return mock {
-            on { this.serial } doReturn serial
-            on { this.executeShell("getprop", "ro.build.characteristics") } doReturn ByteArrayInputStream(
-                (if (isTablet) "tablet" else "phone").toByteArray()
-            )
-            on { this.executeShell("wm", "size") } doReturn ByteArrayInputStream(
-                "Physical size: ${tabletShortestWidthDp}x$tabletShortestWidthDp".toByteArray()
-            )
-            on { this.executeShell("wm", "density") } doReturn ByteArrayInputStream(
-                "Physical density: 160".toByteArray()
-            )
+    ): Device = mockk {
+        every { serialNumber } returns serial
+
+        val shellOutputSlot = slot<IShellOutputReceiver>()
+
+        fun MockKStubScope<Unit, Unit>.answersShellOutput(shellOutput: String) = answers {
+            shellOutputSlot.captured.addOutput(shellOutput.toByteArray(), 0, shellOutput.length)
         }
+
+        every {
+            executeShellCommand("getprop ro.build.characteristics", capture(shellOutputSlot), any(), any())
+        }.answersShellOutput(if (isTablet) "tablet" else " phone")
+
+        every {
+            executeShellCommand("wm size", capture(shellOutputSlot), any(), any())
+        }.answersShellOutput("Physical size: ${tabletShortestWidthDp}x$tabletShortestWidthDp")
+
+        every {
+            executeShellCommand("wm density", capture(shellOutputSlot), any(), any())
+        }.answersShellOutput("Physical density: 160")
     }
 }

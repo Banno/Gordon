@@ -27,8 +27,8 @@ dependencies {
 
     implementation("io.arrow-kt:arrow-core:0.13.2")
 
-    testImplementation("junit:junit:4.13")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
+    testImplementation(kotlin("test-junit"))
+    testImplementation("io.mockk:mockk:1.11.0")
 }
 
 tasks.withType<Test>().configureEach {
