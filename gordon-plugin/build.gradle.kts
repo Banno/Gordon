@@ -10,7 +10,6 @@ plugins {
 repositories {
     google()
     mavenCentral()
-    maven("https://www.jitpack.io")
 }
 
 val androidGradlePluginVersion: String by project
@@ -25,12 +24,11 @@ dependencies {
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
     implementation("com.android.tools.build:bundletool:1.6.0")
     implementation("org.smali:dexlib2:2.5.2")
-    implementation("com.github.vidstige:jadb:v1.1.0")
 
     implementation("io.arrow-kt:arrow-core:0.13.2")
 
-    testImplementation("junit:junit:4.13")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
+    testImplementation(kotlin("test-junit"))
+    testImplementation("io.mockk:mockk:1.11.0")
 }
 
 tasks.withType<Test>().configureEach {

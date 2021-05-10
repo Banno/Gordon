@@ -2,27 +2,27 @@ package com.banno.gordon
 
 import arrow.core.Either
 import arrow.core.computations.either
-import se.vidstige.jadb.JadbConnection
-import se.vidstige.jadb.JadbDevice
+import com.android.tools.build.bundletool.device.AdbServer
+import com.android.tools.build.bundletool.device.Device
 
 internal typealias PoolName = String
 
 internal data class DevicePool(
     val poolName: PoolName,
-    val devices: List<JadbDevice>
+    val devices: List<Device>
 )
 
 internal fun calculatePools(
-    adb: JadbConnection,
+    adb: AdbServer,
     strategy: PoolingStrategy,
     tabletShortestWidthDp: Int?
 ): Either<Throwable, List<DevicePool>> = either.eager {
     val allDevices = adb.getAllDevices().bind()
 
     when (strategy) {
-        PoolingStrategy.PoolPerDevice -> allDevices.map { DevicePool(it.serial, listOf(it)) }
+        PoolingStrategy.PoolPerDevice -> allDevices.map { DevicePool(it.serialNumber, listOf(it)) }
 
-        PoolingStrategy.SinglePool -> listOf(DevicePool("All-Devices", allDevices))
+        PoolingStrategy.SinglePool -> listOf(DevicePool("All-Devices", allDevices.toList()))
 
         PoolingStrategy.PhonesAndTablets -> {
             val deviceAndIsTablet = allDevices.map { it to it.isTablet(tabletShortestWidthDp).bind() }
@@ -35,7 +35,7 @@ internal fun calculatePools(
 
         is PoolingStrategy.Manual ->
             strategy.poolNameToDeviceSerials.map { (poolName, deviceSerials) ->
-                DevicePool(poolName, deviceSerials.mapNotNull { serial -> allDevices.find { it.serial == serial } })
+                DevicePool(poolName, deviceSerials.mapNotNull { serial -> allDevices.find { it.serialNumber == serial } })
             }
     }
 }

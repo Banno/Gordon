@@ -11,7 +11,6 @@ pluginManagement {
         google()
         mavenCentral()
         mavenLocal()
-        maven("https://www.jitpack.io")
     }
 
     plugins {

@@ -1,21 +1,19 @@
 package com.banno.gordon
 
+import com.android.tools.build.bundletool.device.Device
 import com.banno.gordon.TestResult.Failed
 import com.banno.gordon.TestResult.Flaky
 import com.banno.gordon.TestResult.NotRun
 import com.banno.gordon.TestResult.Passed
+import io.mockk.MockKAdditionalAnswerScope
+import io.mockk.MockKStubScope
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import org.junit.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.anyVararg
-import org.mockito.kotlin.check
-import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.doReturn
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
-import se.vidstige.jadb.JadbDevice
-import java.io.ByteArrayInputStream
+import shadow.bundletool.com.android.ddmlib.IShellOutputReceiver
 import java.util.UUID
 
 class TestDistributionTest {
@@ -35,29 +33,29 @@ class TestDistributionTest {
             DevicePool(
                 "First",
                 listOf(
-                    anyJadbDevice(),
-                    anyJadbDevice()
+                    anyDevice(),
+                    anyDevice()
                 )
             ),
             DevicePool(
                 "Second",
                 listOf(
-                    anyJadbDevice(),
-                    anyJadbDevice()
+                    anyDevice(),
+                    anyDevice()
                 )
             ),
             DevicePool(
                 "Third",
                 listOf(
-                    anyJadbDevice(),
-                    anyJadbDevice()
+                    anyDevice(),
+                    anyDevice()
                 )
             )
         )
 
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
-            logger = mock(),
+            logger = mockk(relaxed = true),
             instrumentationPackage = "instrumentationPackage",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
@@ -100,7 +98,7 @@ class TestDistributionTest {
             TestCase("A", "methodOne", false)
         )
 
-        val device = anyJadbDevice()
+        val device = anyDevice()
 
         device.mockOrderedTestResponses(
             TestResponse.EXCEPTION,
@@ -111,7 +109,7 @@ class TestDistributionTest {
 
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
-            logger = mock(),
+            logger = mockk(relaxed = true),
             instrumentationPackage = "instrumentationPackage",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
@@ -126,10 +124,7 @@ class TestDistributionTest {
             )
         )
 
-        verify(device, times(2)).executeShell(
-            check<String> { it.contains("A#methodOne") },
-            anyVararg()
-        )
+        verify(exactly = 2) { device.executeShellCommand(match { it.contains("A#methodOne") }, any(), any(), any()) }
     }
 
     @Test
@@ -138,7 +133,7 @@ class TestDistributionTest {
             TestCase("A", "methodOne", false)
         )
 
-        val device = anyJadbDevice()
+        val device = anyDevice()
 
         device.mockOrderedTestResponses(
             TestResponse.FAIL,
@@ -149,7 +144,7 @@ class TestDistributionTest {
 
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
-            logger = mock(),
+            logger = mockk(relaxed = true),
             instrumentationPackage = "instrumentationPackage",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
@@ -160,14 +155,11 @@ class TestDistributionTest {
 
         actual shouldEqual mapOf(
             "First" to mapOf(
-                TestCase("A", "methodOne", false) to Flaky(null, listOf(Failure(null, "FAILURE", device.serial)))
+                TestCase("A", "methodOne", false) to Flaky(null, listOf(Failure(null, "FAILURE", device.serialNumber)))
             )
         )
 
-        verify(device, times(2)).executeShell(
-            check<String> { it.contains("A#methodOne") },
-            anyVararg()
-        )
+        verify(exactly = 2) { device.executeShellCommand(match { it.contains("A#methodOne") }, any(), any(), any()) }
     }
 
     @Test
@@ -176,7 +168,7 @@ class TestDistributionTest {
             TestCase("A", "methodOne", false)
         )
 
-        val device = anyJadbDevice()
+        val device = anyDevice()
 
         device.mockOrderedTestResponses(
             TestResponse.EXCEPTION,
@@ -189,7 +181,7 @@ class TestDistributionTest {
 
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
-            logger = mock(),
+            logger = mockk(relaxed = true),
             instrumentationPackage = "instrumentationPackage",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
@@ -204,10 +196,7 @@ class TestDistributionTest {
             )
         )
 
-        verify(device, times(3)).executeShell(
-            check<String> { it.contains("A#methodOne") },
-            anyVararg()
-        )
+        verify(exactly = 3) { device.executeShellCommand(match { it.contains("A#methodOne") }, any(), any(), any()) }
     }
 
     @Test
@@ -216,7 +205,7 @@ class TestDistributionTest {
             TestCase("A", "methodOne", false)
         )
 
-        val device = anyJadbDevice()
+        val device = anyDevice()
 
         device.mockOrderedTestResponses(
             TestResponse.FAIL,
@@ -229,7 +218,7 @@ class TestDistributionTest {
 
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
-            logger = mock(),
+            logger = mockk(relaxed = true),
             instrumentationPackage = "instrumentationPackage",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
@@ -242,19 +231,16 @@ class TestDistributionTest {
             "First" to mapOf(
                 TestCase("A", "methodOne", false) to Failed(
                     listOf(
-                        Failure(null, "FAILURE", device.serial),
-                        Failure(null, "FAILURE", device.serial),
-                        Failure(null, "FAILURE", device.serial)
+                        Failure(null, "FAILURE", device.serialNumber),
+                        Failure(null, "FAILURE", device.serialNumber),
+                        Failure(null, "FAILURE", device.serialNumber)
                     )
 
                 )
             )
         )
 
-        verify(device, times(3)).executeShell(
-            check<String> { it.contains("A#methodOne") },
-            anyVararg()
-        )
+        verify(exactly = 3) { device.executeShellCommand(match { it.contains("A#methodOne") }, any(), any(), any()) }
     }
 
     @Test
@@ -263,8 +249,8 @@ class TestDistributionTest {
             TestCase("A", "methodOne", false)
         )
 
-        val device = anyJadbDevice()
-        val device2 = anyJadbDevice()
+        val device = anyDevice()
+        val device2 = anyDevice()
 
         device.mockOrderedTestResponses(TestResponse.FAIL)
 
@@ -274,7 +260,7 @@ class TestDistributionTest {
 
         runAllTests(
             dispatcher = Dispatchers.IO,
-            logger = mock(),
+            logger = mockk(relaxed = true),
             instrumentationPackage = "instrumentationPackage",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
@@ -283,14 +269,8 @@ class TestDistributionTest {
             testTimeoutMillis = 1000
         )
 
-        verify(device, times(1)).executeShell(
-            check<String> { it.contains("A#methodOne") },
-            anyVararg()
-        )
-        verify(device, times(1)).executeShell(
-            check<String> { it.contains("A#methodOne") },
-            anyVararg()
-        )
+        verify(exactly = 1) { device.executeShellCommand(match { it.contains("A#methodOne") }, any(), any(), any()) }
+        verify(exactly = 1) { device2.executeShellCommand(match { it.contains("A#methodOne") }, any(), any(), any()) }
     }
 
     @Test
@@ -299,7 +279,7 @@ class TestDistributionTest {
             TestCase("A", "methodOne", false)
         )
 
-        val device = anyJadbDevice()
+        val device = anyDevice()
 
         device.mockOrderedTestResponses(
             TestResponse.FAIL,
@@ -310,7 +290,7 @@ class TestDistributionTest {
 
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
-            logger = mock(),
+            logger = mockk(relaxed = true),
             instrumentationPackage = "instrumentationPackage",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
@@ -321,7 +301,7 @@ class TestDistributionTest {
 
         actual shouldEqual mapOf(
             "First" to mapOf(
-                TestCase("A", "methodOne", false) to Failed(null, "FAILURE", device.serial)
+                TestCase("A", "methodOne", false) to Failed(null, "FAILURE", device.serialNumber)
             )
         )
     }
@@ -332,7 +312,7 @@ class TestDistributionTest {
             TestCase("A", "methodOne", false)
         )
 
-        val device = anyJadbDevice()
+        val device = anyDevice()
 
         device.mockOrderedTestResponses(TestResponse.FAIL, TestResponse.FAIL)
 
@@ -340,7 +320,7 @@ class TestDistributionTest {
 
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
-            logger = mock(),
+            logger = mockk(relaxed = true),
             instrumentationPackage = "instrumentationPackage",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
@@ -353,8 +333,8 @@ class TestDistributionTest {
             "First" to mapOf(
                 TestCase("A", "methodOne", false) to Failed(
                     listOf(
-                        Failure(null, "FAILURE", device.serial),
-                        Failure(null, "FAILURE", device.serial)
+                        Failure(null, "FAILURE", device.serialNumber),
+                        Failure(null, "FAILURE", device.serialNumber)
                     )
                 )
             )
@@ -367,7 +347,7 @@ class TestDistributionTest {
             TestCase("A", "methodOne", false)
         )
 
-        val device = anyJadbDevice()
+        val device = anyDevice()
 
         device.mockOrderedTestResponses(TestResponse.FAIL, TestResponse.FAIL, TestResponse.PASS)
 
@@ -375,7 +355,7 @@ class TestDistributionTest {
 
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
-            logger = mock(),
+            logger = mockk(relaxed = true),
             instrumentationPackage = "instrumentationPackage",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
@@ -389,8 +369,8 @@ class TestDistributionTest {
                 TestCase("A", "methodOne", false) to Flaky(
                     null,
                     listOf(
-                        Failure(null, "FAILURE", device.serial),
-                        Failure(null, "FAILURE", device.serial)
+                        Failure(null, "FAILURE", device.serialNumber),
+                        Failure(null, "FAILURE", device.serialNumber)
                     )
                 )
             )
@@ -403,7 +383,7 @@ class TestDistributionTest {
             TestCase("A", "methodOne", false)
         )
 
-        val device = anyJadbDevice()
+        val device = anyDevice()
 
         device.mockOrderedTestResponses(TestResponse.MULTIPLE_PASS)
 
@@ -411,7 +391,7 @@ class TestDistributionTest {
 
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
-            logger = mock(),
+            logger = mockk(relaxed = true),
             instrumentationPackage = "instrumentationPackage",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
@@ -440,40 +420,40 @@ class TestDistributionTest {
         EXCEPTION
     }
 
-    private fun JadbDevice.mockOrderedTestResponses(vararg responses: TestResponse) {
-        var index = 0
-        forMock(this) {
-            on {
-                this.executeShell(
-                    any<String>(),
-                    anyVararg()
-                )
-            } doAnswer {
-                val response = responses[index]
-
-                index++
-
-                when (response) {
-                    TestResponse.PASS -> ByteArrayInputStream("OK (1 test)".toByteArray())
-                    TestResponse.MULTIPLE_PASS -> ByteArrayInputStream("Time: 1.337\n\nOK (42 tests)".toByteArray())
-                    TestResponse.FAIL -> ByteArrayInputStream("FAILURE".toByteArray())
-                    TestResponse.EXCEPTION -> null
-                }
-            }
-        }
+    private fun anyDevice(
+        serial: String = UUID.randomUUID().toString()
+    ): Device = mockk {
+        every { serialNumber } returns serial
+        mockOrderedTestResponses(TestResponse.PASS)
     }
 
-    private fun anyJadbDevice(
-        serial: String = UUID.randomUUID().toString()
-    ): JadbDevice {
-        return mock {
-            on { this.serial } doReturn serial
-            on {
-                this.executeShell(
-                    any<String>(),
-                    anyVararg()
-                )
-            } doAnswer { ByteArrayInputStream("OK (1 test)".toByteArray()) }
+    private fun Device.mockOrderedTestResponses(vararg responses: TestResponse) {
+        val shellOutputSlot = slot<IShellOutputReceiver>()
+
+        val answerShellOutput: (String) -> Unit = {
+            shellOutputSlot.captured.addOutput(it.toByteArray(), 0, it.length)
+        }
+
+        fun MockKStubScope<Unit, Unit>.answersTestResponse(response: TestResponse) = when (response) {
+            TestResponse.PASS -> answers { answerShellOutput("OK (1 test)") }
+            TestResponse.MULTIPLE_PASS -> answers { answerShellOutput("Time: 1.337\n\nOK (42 tests)") }
+            TestResponse.FAIL -> answers { answerShellOutput("FAILURE") }
+            TestResponse.EXCEPTION -> throws(IllegalStateException("UNABLE TO RUN"))
+        }
+
+        fun MockKAdditionalAnswerScope<Unit, Unit>.andThenAnswersTestResponse(response: TestResponse) = when (response) {
+            TestResponse.PASS -> andThenAnswer { answerShellOutput("OK (1 test)") }
+            TestResponse.MULTIPLE_PASS -> andThenAnswer { answerShellOutput("Time: 1.337\n\nOK (42 tests)") }
+            TestResponse.FAIL -> andThenAnswer { answerShellOutput("FAILURE") }
+            TestResponse.EXCEPTION -> andThenThrows(IllegalStateException("UNABLE TO RUN"))
+        }
+
+        responses.drop(1).fold(
+            every {
+                executeShellCommand(any(), capture(shellOutputSlot), any(), any())
+            }.answersTestResponse(responses.first())
+        ) { additionalAnswerScope: MockKAdditionalAnswerScope<Unit, Unit>, response: TestResponse ->
+            additionalAnswerScope.andThenAnswersTestResponse(response)
         }
     }
 }
