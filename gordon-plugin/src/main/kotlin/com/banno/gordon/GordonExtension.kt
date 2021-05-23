@@ -16,6 +16,7 @@ abstract class GordonExtension @Inject constructor(
     val testTimeoutMillis: Property<Long> = objects.property()
     val testFilter: Property<String> = objects.property()
     val testInstrumentationRunner: Property<String> = objects.property()
+    val ignoreProblematicDevices: Property<Boolean> = objects.property()
 
     init {
         poolingStrategy.convention(PoolingStrategy.PoolPerDevice)
@@ -25,5 +26,6 @@ abstract class GordonExtension @Inject constructor(
         testTimeoutMillis.convention(120_000)
         testFilter.convention("")
         testInstrumentationRunner.convention("")
+        ignoreProblematicDevices.convention(false)
     }
 }

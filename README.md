@@ -111,6 +111,9 @@ gordon {
 
     // Default is no filter
     testFilter.set("ExampleTest.runThisMethod,RunThisWholeTestClass,com.example.runthispackage,com.example.RunTestsWithThisAnnotation")
+
+    // Default is false
+    ignoreProblematicDevices.set(true)
 }
 ```
 
