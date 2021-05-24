@@ -99,6 +99,7 @@ class GordonPlugin : Plugin<Project> {
                     this.testTimeoutMillis.set(gordonExtension.testTimeoutMillis)
                     this.extensionTestFilter.set(gordonExtension.testFilter)
                     this.extensionTestInstrumentationRunner.set(gordonExtension.testInstrumentationRunner)
+                    this.ignoreProblematicDevices.set(gordonExtension.ignoreProblematicDevices)
                 }
             }
     }
