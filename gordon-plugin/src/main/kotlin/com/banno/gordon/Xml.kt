@@ -31,8 +31,8 @@ internal class XmlElement(
                 append(">")
                 append(text.escape())
             } else {
-                appendln(">")
-                children.forEach { appendln(it.toString()) }
+                appendLine(">")
+                children.forEach { appendLine(it.toString()) }
                 append(TAB.repeat(indentation))
             }
             append("</$name>")
@@ -57,8 +57,8 @@ internal fun xmlDocument(
     rootElementText: String?,
     block: XmlElement.() -> Unit = {}
 ): String = StringBuilder().run {
-    appendln("<?xml version='1.0' encoding='UTF-8'?>")
-    appendln(XmlElement(name = rootElementName, text = rootElementText).apply(block).toString())
+    appendLine("<?xml version='1.0' encoding='UTF-8'?>")
+    appendLine(XmlElement(name = rootElementName, text = rootElementText).apply(block).toString())
     toString()
 }
 
