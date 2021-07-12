@@ -17,16 +17,6 @@ jobs:
 
     - uses: actions/checkout@v2
 
-    - uses: actions/cache@v1
-      with:
-        path: ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle*.properties') }}
-
-    - uses: actions/cache@v1
-      with:
-        path: ~/.gradle/caches
-        key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle*.properties') }}
-
     - name: Gradle Publish
       env:
         GRADLE_PLUGIN_PUBLISH_KEY: ${{ secrets.GRADLE_PLUGIN_PUBLISH_KEY }}
