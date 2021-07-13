@@ -6,11 +6,10 @@ plugins {
 }
 
 android {
-    compileSdkVersion(30)
-    buildToolsVersion("30.0.3")
+    compileSdk = 30
+    buildToolsVersion = "30.0.3"
     defaultConfig {
-        minSdkVersion(21)
-        targetSdkVersion(30)
+        minSdk = 21
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 }
@@ -22,6 +21,6 @@ repositories {
 
 dependencies {
     implementation(project(":test_app"))
-    implementation("androidx.fragment:fragment-ktx:1.3.3")
-    androidTestImplementation("androidx.test:runner:1.3.0")
+    implementation("androidx.fragment:fragment-ktx:1.3.5")
+    androidTestImplementation("androidx.test:runner:1.4.0")
 }
