@@ -183,17 +183,17 @@ internal fun List<Device>.reinstall(
     }.forEach { it.bind() }
 }
 
-internal fun Either<Throwable, Unit>.ignoreErrorIfPossible(
+private fun Either<Throwable, Unit>.ignoreErrorIfPossible(
     device: Device,
     logger: Logger,
     ignoreProblematicDevices: Boolean,
     problematicDevices: MutableList<Device>,
-): Either<Throwable, Unit> =
-    when {
-        this is Either.Left && ignoreProblematicDevices -> {
+): Either<Throwable, Unit> = fold(
+    ifLeft = {
+        Either.conditionally(ignoreProblematicDevices, ifFalse = { it }) {
             problematicDevices.add(device)
-            logger.lifecycle("${device.serialNumber}: ignored because ${value.message}")
-            Unit.right()
+            logger.warn("${device.serialNumber}: ignored installation failure", it)
         }
-        else -> this
-    }
+    },
+    ifRight = { it.right() }
+)

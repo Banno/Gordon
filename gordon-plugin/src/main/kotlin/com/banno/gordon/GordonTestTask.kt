@@ -69,7 +69,7 @@ internal abstract class GordonTestTask @Inject constructor(
     @get:Input
     internal val tabletShortestWidthDp: Property<Int> = objects.property()
 
-    @get:Input
+    @get:Internal
     internal val ignoreProblematicDevices: Property<Boolean> = objects.property()
 
     @get:Internal
@@ -146,7 +146,7 @@ internal abstract class GordonTestTask @Inject constructor(
 
             val adb = initializeDefaultAdbServer().bind()
             val problematicDevices = mutableListOf<Device>()
-            var pools = calculatePools(
+            val originalPools = calculatePools(
                 adb,
                 poolingStrategy.get(),
                 tabletShortestWidthDp.get().takeIf { it > -1 }
@@ -155,7 +155,7 @@ internal abstract class GordonTestTask @Inject constructor(
                 .filter { it.matchesFilter(testFilters.get()) }
 
             testCases.validateTestCases().bind()
-            pools.validateDevicePools().bind()
+            originalPools.validateDevicePools().bind()
 
             val applicationAab = applicationAab.get().asFile.takeUnless { it == PLACEHOLDER_APPLICATION_AAB }
             val applicationPackage = applicationPackage.get().takeUnless { it == PLACEHOLDER_APPLICATION_PACKAGE }
@@ -169,7 +169,7 @@ internal abstract class GordonTestTask @Inject constructor(
                 keyPassword = signingConfigCredentials.get().keyPassword
             )
 
-            pools.flatMap { it.devices }.reinstall(
+            originalPools.flatMap { it.devices }.reinstall(
                 dispatcher = Dispatchers.Default,
                 logger = logger,
                 applicationPackage = applicationPackage,
@@ -184,7 +184,7 @@ internal abstract class GordonTestTask @Inject constructor(
                 problematicDevices = problematicDevices,
             ).bind()
 
-            pools = pools.filterProblematicDevices(problematicDevices)
+            val pools = originalPools.filterProblematicDevices(problematicDevices)
             pools.validateDevicePools().bind()
 
             val testResults = runAllTests(
@@ -193,7 +193,7 @@ internal abstract class GordonTestTask @Inject constructor(
                 instrumentationPackage = instrumentationPackage.get(),
                 instrumentationRunnerOptions = instrumentationRunnerOptions.get(),
                 allTestCases = testCases,
-                allPools = pools.filterProblematicDevices(problematicDevices),
+                allPools = pools,
                 retryQuota = retryQuota.get(),
                 testTimeoutMillis = testTimeoutMillis.get()
             ).bind()
@@ -202,7 +202,7 @@ internal abstract class GordonTestTask @Inject constructor(
 
             val htmlReportPath = testResults.htmlReport().write(reportDirectory.get().asFile).bind()
 
-            pools.filterProblematicDevices(problematicDevices).flatMap { it.devices }.safeUninstall(
+            pools.flatMap { it.devices }.safeUninstall(
                 dispatcher = Dispatchers.Default,
                 timeoutMillis = installTimeoutMillis.get(),
                 applicationPackage = applicationPackage,
@@ -245,7 +245,7 @@ internal fun List<TestCase>.validateTestCases() =
 
 internal fun List<DevicePool>.filterProblematicDevices(problematicDevices: List<Device>) =
     map { pool ->
-        DevicePool(pool.poolName, pool.devices - problematicDevices)
+        pool.copy(devices = pool.devices - problematicDevices)
     }
 
 internal fun TestCase.matchesFilter(filters: List<String>): Boolean {

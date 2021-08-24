@@ -112,7 +112,7 @@ gordon {
     // Default is no filter
     testFilter.set("ExampleTest.runThisMethod,RunThisWholeTestClass,com.example.runthispackage,com.example.RunTestsWithThisAnnotation")
 
-    // Default is false
+    // Default is false - to ignore devices that failed during artifacts installation, may be useful with large number of devices and SinglePool strategy
     ignoreProblematicDevices.set(true)
 }
 ```

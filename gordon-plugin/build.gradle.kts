@@ -18,11 +18,12 @@ val aapt2Version: String by project
 dependencies {
     implementation(gradleKotlinDsl())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
 
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
-    implementation("com.android.tools.build:bundletool:1.6.0")
+    implementation("com.android.tools.build:bundletool:1.6.1")
+    implementation("com.google.guava:guava:30.1.1-jre")
     implementation("org.smali:dexlib2:2.5.2")
 
     implementation("io.arrow-kt:arrow-core:0.13.2")
