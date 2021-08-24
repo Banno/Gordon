@@ -3,6 +3,7 @@ package com.banno.gordon
 import arrow.core.Either
 import arrow.core.computations.either
 import arrow.core.flatMap
+import arrow.core.right
 import com.android.tools.build.bundletool.commands.BuildApksCommand
 import com.android.tools.build.bundletool.commands.InstallApksCommand
 import com.android.tools.build.bundletool.device.AdbServer
@@ -157,7 +158,9 @@ internal fun List<Device>.reinstall(
     signingConfig: SigningConfig,
     instrumentationApk: File,
     installTimeoutMillis: Long,
-    adb: AdbServer
+    adb: AdbServer,
+    ignoreProblematicDevices: Boolean,
+    problematicDevices: MutableList<Device>,
 ): Either<Throwable, Unit> = either.eager {
     val applicationApkSet = applicationAab?.let { buildApkSet(adb, it, signingConfig) }?.bind()
 
@@ -174,8 +177,23 @@ internal fun List<Device>.reinstall(
                     logger.lifecycle("${device.serialNumber}: installing $instrumentationPackage")
                     device.safeUninstall(installTimeoutMillis, instrumentationPackage)
                     device.installApk(installTimeoutMillis, instrumentationApk).bind()
-                }
+                }.ignoreErrorIfPossible(device, logger, ignoreProblematicDevices, problematicDevices)
             }
         }.awaitAll()
     }.forEach { it.bind() }
 }
+
+private fun Either<Throwable, Unit>.ignoreErrorIfPossible(
+    device: Device,
+    logger: Logger,
+    ignoreProblematicDevices: Boolean,
+    problematicDevices: MutableList<Device>,
+): Either<Throwable, Unit> = fold(
+    ifLeft = {
+        Either.conditionally(ignoreProblematicDevices, ifFalse = { it }) {
+            problematicDevices.add(device)
+            logger.warn("${device.serialNumber}: ignored installation failure", it)
+        }
+    },
+    ifRight = { it.right() }
+)

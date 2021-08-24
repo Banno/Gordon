@@ -3,6 +3,8 @@ package com.banno.gordon
 import arrow.core.Either
 import arrow.core.computations.either
 import arrow.core.left
+import arrow.core.right
+import com.android.tools.build.bundletool.device.Device
 import kotlinx.coroutines.Dispatchers
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
@@ -66,6 +68,9 @@ internal abstract class GordonTestTask @Inject constructor(
 
     @get:Input
     internal val tabletShortestWidthDp: Property<Int> = objects.property()
+
+    @get:Internal
+    internal val ignoreProblematicDevices: Property<Boolean> = objects.property()
 
     @get:Internal
     internal val retryQuota: Property<Int> = objects.property()
@@ -140,7 +145,8 @@ internal abstract class GordonTestTask @Inject constructor(
             reportDirectory.get().asFile.clear().bind()
 
             val adb = initializeDefaultAdbServer().bind()
-            val pools = calculatePools(
+            val problematicDevices = mutableListOf<Device>()
+            val originalPools = calculatePools(
                 adb,
                 poolingStrategy.get(),
                 tabletShortestWidthDp.get().takeIf { it > -1 }
@@ -148,14 +154,8 @@ internal abstract class GordonTestTask @Inject constructor(
             val testCases = loadTestSuite(instrumentationApk).bind()
                 .filter { it.matchesFilter(testFilters.get()) }
 
-            when {
-                testCases.isEmpty() -> IllegalStateException("No test cases found").left().bind<Unit>()
-                pools.isEmpty() -> IllegalStateException("No devices found").left().bind<Unit>()
-                pools.any { it.devices.isEmpty() } -> {
-                    val emptyPools = pools.filter { it.devices.isEmpty() }.map { it.poolName }
-                    IllegalStateException("No devices found in pools $emptyPools").left().bind<Unit>()
-                }
-            }
+            testCases.validateTestCases().bind()
+            originalPools.validateDevicePools().bind()
 
             val applicationAab = applicationAab.get().asFile.takeUnless { it == PLACEHOLDER_APPLICATION_AAB }
             val applicationPackage = applicationPackage.get().takeUnless { it == PLACEHOLDER_APPLICATION_PACKAGE }
@@ -169,7 +169,7 @@ internal abstract class GordonTestTask @Inject constructor(
                 keyPassword = signingConfigCredentials.get().keyPassword
             )
 
-            pools.flatMap { it.devices }.reinstall(
+            originalPools.flatMap { it.devices }.reinstall(
                 dispatcher = Dispatchers.Default,
                 logger = logger,
                 applicationPackage = applicationPackage,
@@ -179,8 +179,13 @@ internal abstract class GordonTestTask @Inject constructor(
                 signingConfig = signingConfig,
                 instrumentationApk = instrumentationApk,
                 installTimeoutMillis = installTimeoutMillis.get(),
-                adb = adb
+                adb = adb,
+                ignoreProblematicDevices = ignoreProblematicDevices.get(),
+                problematicDevices = problematicDevices,
             ).bind()
+
+            val pools = originalPools.filterProblematicDevices(problematicDevices)
+            pools.validateDevicePools().bind()
 
             val testResults = runAllTests(
                 dispatcher = Dispatchers.Default,
@@ -221,6 +226,27 @@ internal abstract class GordonTestTask @Inject constructor(
         }
     }
 }
+
+internal fun List<DevicePool>.validateDevicePools() =
+    when {
+        isEmpty() -> IllegalStateException("No devices found").left()
+        any { it.devices.isEmpty() } -> {
+            val emptyPools = filter { it.devices.isEmpty() }.map { it.poolName }
+            IllegalStateException("No devices found in pools $emptyPools").left()
+        }
+        else -> Unit.right()
+    }
+
+internal fun List<TestCase>.validateTestCases() =
+    when {
+        isEmpty() -> IllegalStateException("No test cases found").left()
+        else -> Unit.right()
+    }
+
+internal fun List<DevicePool>.filterProblematicDevices(problematicDevices: List<Device>) =
+    map { pool ->
+        pool.copy(devices = pool.devices - problematicDevices)
+    }
 
 internal fun TestCase.matchesFilter(filters: List<String>): Boolean {
     val fullyQualifiedTestMethod = "$fullyQualifiedClassName.$methodName"

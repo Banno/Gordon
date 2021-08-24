@@ -93,6 +93,7 @@ class GordonPlugin : Plugin<Project> {
             task.testTimeoutMillis.set(gordonExtension.testTimeoutMillis)
             task.extensionTestFilter.set(gordonExtension.testFilter)
             task.extensionTestInstrumentationRunner.set(gordonExtension.testInstrumentationRunner)
+            task.ignoreProblematicDevices.set(gordonExtension.ignoreProblematicDevices)
         }
 
         val testedExtension = project.extensions.getByType<TestedExtension>()
