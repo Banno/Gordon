@@ -21,6 +21,6 @@ repositories {
 
 dependencies {
     implementation(project(":test_app"))
-    implementation("androidx.fragment:fragment-ktx:1.3.5")
+    implementation("androidx.fragment:fragment-ktx:1.3.6")
     androidTestImplementation("androidx.test:runner:1.4.0")
 }
