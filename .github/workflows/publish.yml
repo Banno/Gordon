@@ -18,8 +18,9 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Gradle Publish
+      uses: gradle/gradle-build-action@v1
       env:
         GRADLE_PLUGIN_PUBLISH_KEY: ${{ secrets.GRADLE_PLUGIN_PUBLISH_KEY }}
         GRADLE_PLUGIN_PUBLISH_SECRET: ${{ secrets.GRADLE_PLUGIN_PUBLISH_SECRET }}
-      run: |
-        ./gradlew publishPlugins
+      with:
+        arguments: publishPlugins

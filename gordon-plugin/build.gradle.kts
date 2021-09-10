@@ -22,14 +22,14 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
 
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
-    implementation("com.android.tools.build:bundletool:1.6.1")
+    implementation("com.android.tools.build:bundletool:1.8.0")
     implementation("com.google.guava:guava:30.1.1-jre")
     implementation("org.smali:dexlib2:2.5.2")
 
     implementation("io.arrow-kt:arrow-core:0.13.2")
 
     testImplementation(kotlin("test-junit"))
-    testImplementation("io.mockk:mockk:1.11.0")
+    testImplementation("io.mockk:mockk:1.12.0")
 }
 
 tasks.withType<Test>().configureEach {
