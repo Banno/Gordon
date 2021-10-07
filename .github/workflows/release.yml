@@ -14,35 +14,24 @@ jobs:
       with:
         token: ${{ secrets.BANNO_AUTOBOT_GITHUB_TOKEN }}
 
-    - id: get_previous_release
-      uses: thebritican/fetch-latest-release@v2.0.0
-
-    - run: |
-        PREVIOUS_TAG=${{ steps.get_previous_release.outputs.tag_name }}
-        echo "previousTag=$PREVIOUS_TAG" >> $GITHUB_ENV
-
-    - id: get_new_version
+    - id: current_version
       uses: christian-draeger/read-properties@1.0.1
       with:
         path: gordon-plugin/gradle.properties
         property: version
-
-    - run: |
-        NEW_TAG=${{ steps.get_new_version.outputs.value }}
-        echo "newTag=$NEW_TAG" >> $GITHUB_ENV
 
     - name: Create Tag
       uses: simpleactions/create-tag@v1.0.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag: ${{ env.newTag }}
-        message: ${{ env.newTag }}
+        tag: ${{ steps.current_version.outputs.value }}
+        message: ${{ steps.current_version.outputs.value }}
 
     - id: next_version
       uses: jessicalostinspace/bump-semantic-version-action@v1.0.1
       with:
-        semantic-version: ${{ env.newTag }}
+        semantic-version: ${{ steps.current_version.outputs.value }}
         version-type: PATCH
 
     - name: Bump Version
@@ -60,21 +49,12 @@ jobs:
         add: gordon-plugin/gradle.properties
         message: Bump version to ${{steps.next_version.outputs.bumped-semantic-version}}
 
-    - name: Generate Changelog
-      id: generate_changelog
-      uses: nblagoev/pull-release-notes-action@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        base-ref: ${{ env.previousTag }}
-        head-ref: HEAD
-
     - name: Draft Release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ env.newTag }}
-        release_name: ${{ env.newTag }}
-        body: ${{steps.generate_changelog.outputs.result}}
+        tag_name: ${{ steps.current_version.outputs.value }}
+        release_name: ${{ steps.current_version.outputs.value }}
+        body: <!-- Generate release notes by using the "Auto-generate release notes" button above -->
         draft: true
