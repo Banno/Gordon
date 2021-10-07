@@ -11,7 +11,7 @@ assignees: ''
 - [ ] Are you using [the latest Gordon version](https://github.com/Banno/Gordon/releases/latest)? If not, try updating.
 - [ ] Are you using [the latest Gradle version](https://gradle.org/releases)? If not, try updating. If you can't update your Gradle version, you may have to use an older Gordon version that supports the outdated Gradle version.
 - [ ] Are you using [the latest Android Gradle Plugin version](https://developer.android.com/studio/releases/gradle-plugin)? If not, try updating. If you can't update your AGP version, you may have to use an older Gordon version that supports the outdated AGP version.
-- [ ] Are you sure this is a bug? If it's a feature request or idea for improvement, or if you're just not sure that your problem is caused by a Gordon bug rather than something else, consider posting in the ["Ideas" or "Q&A" Discussion categories](https://github.com/Banno/Gordon/discussions) instead of opening an issue.
+- [ ] Are you sure this is a bug? If it's a feature request or idea for improvement, or if you're just not sure that your problem is caused by a Gordon bug rather than something else, consider posting in the ["Ideas"](https://github.com/Banno/Gordon/discussions/categories/ideas) or ["Q&A"](https://github.com/Banno/Gordon/discussions/categories/q-a) Discussion categories instead of opening an issue.
 
 **Describe the bug**
 <!-- A clear and concise description of what the bug is -->
