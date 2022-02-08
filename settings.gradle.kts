@@ -17,14 +17,9 @@ pluginManagement {
         kotlin("android") version kotlinVersion
         kotlin("plugin.serialization") version kotlinVersion
         id("org.jmailen.kotlinter") version kotlinterVersion
+        id("com.android.application") version androidGradlePluginVersion
+        id("com.android.library") version androidGradlePluginVersion
+        id("com.android.dynamic-feature") version androidGradlePluginVersion
         id("com.gradle.plugin-publish") version gradlePluginPublishVersion
-    }
-
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.namespace == "com.android") {
-                useModule("com.android.tools.build:gradle:$androidGradlePluginVersion")
-            }
-        }
     }
 }

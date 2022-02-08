@@ -18,6 +18,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
+import java.util.Locale
 
 class GordonPlugin : Plugin<Project> {
 
@@ -32,7 +33,7 @@ class GordonPlugin : Plugin<Project> {
             configuration: (GordonTestTask) -> Unit
         ) {
             val variantTaskName = androidTestVariant.name
-                .capitalize()
+                .capitalize(Locale.ROOT)
                 .replace(Regex("AndroidTest$"), "")
                 .replace(Regex("Debug$"), "")
 
@@ -124,7 +125,7 @@ class GordonPlugin : Plugin<Project> {
                         val testedVariant = testedExtension.testVariants.single { it.name == androidTestVariant.name }.testedVariant as ApkVariant
 
                         val (appProject, appVariant) = appDependencyOfFeature(project, testedVariant)
-                        gordonTask.dependsOn(appProject.tasks.named("bundle${appVariant.name.capitalize()}"))
+                        gordonTask.dependsOn(appProject.tasks.named("bundle${appVariant.name.capitalize(Locale.ROOT)}"))
                         val applicationAab = appVariant.aabOutputFile(appProject)
                         val applicationSigningConfig = appVariant.signingConfig
 
