@@ -192,6 +192,28 @@ If a retry quota is specified, Gordon will, after trying tests once, first retry
 #### Reports
 Gordon generates junit reports in the build directory / `test-results`, and an HTML report in the build directory / `reports`.
 
+#### Code Coverage
+Gordon supports creating code coverage. You can enable it by setting the `coverage` parameter:
+
+```kotlin
+android {
+    defaultConfig {
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        testInstrumentationRunnerArgument("coverage", "true")
+    }
+}
+```
+
+The coverage files will be copied from the device to the build folder. The folder is based on the
+build variant and the device name:
+
+`app/build/outputs/code_coverage/gordon<BuildVariant>/connected/<DeviceName>`
+
+Example:
+`app/build/outputs/code_coverage/gordon/connected/emulator-5554`
+
+
 ## Other notes
 - See questions that have already been answered in [the Q&A category of Discussions](https://github.com/Banno/Gordon/discussions?discussions_q=category%3AQ%26A).
 - Contributions are welcome! See [the guidelines](CONTRIBUTING.md).

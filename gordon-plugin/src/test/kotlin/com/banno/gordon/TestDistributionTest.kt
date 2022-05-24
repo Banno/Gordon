@@ -14,9 +14,13 @@ import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import org.junit.Test
 import shadow.bundletool.com.android.ddmlib.IShellOutputReceiver
+import java.io.File
 import java.util.UUID
 
 class TestDistributionTest {
+
+    private val buildDir = File("build")
+    private val taskName = "gordon"
 
     @Test
     fun shouldRunTestSuiteAcrossAllPools() {
@@ -56,12 +60,15 @@ class TestDistributionTest {
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mockk(relaxed = true),
-            instrumentationPackage = "instrumentationPackage",
+            testedApplicationPackage = "com.example.app",
+            instrumentationPackage = "com.example.app.test",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
             allPools = pools,
             retryQuota = 0,
-            testTimeoutMillis = 1000
+            testTimeoutMillis = 1000,
+            buildDir = buildDir,
+            taskName = taskName
         ).orNull()
 
         actual shouldEqual mapOf(
@@ -110,12 +117,15 @@ class TestDistributionTest {
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mockk(relaxed = true),
-            instrumentationPackage = "instrumentationPackage",
+            testedApplicationPackage = "com.example.app",
+            instrumentationPackage = "com.example.app.test",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
             allPools = pools,
             retryQuota = 1,
-            testTimeoutMillis = 1000
+            testTimeoutMillis = 1000,
+            buildDir = buildDir,
+            taskName = taskName
         ).orNull()
 
         actual shouldEqual mapOf(
@@ -145,12 +155,15 @@ class TestDistributionTest {
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mockk(relaxed = true),
-            instrumentationPackage = "instrumentationPackage",
+            testedApplicationPackage = "com.example.app",
+            instrumentationPackage = "com.example.app.test",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
             allPools = pools,
             retryQuota = 1,
-            testTimeoutMillis = 1000
+            testTimeoutMillis = 1000,
+            buildDir = buildDir,
+            taskName = taskName
         ).orNull()
 
         actual shouldEqual mapOf(
@@ -182,12 +195,15 @@ class TestDistributionTest {
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mockk(relaxed = true),
-            instrumentationPackage = "instrumentationPackage",
+            testedApplicationPackage = "com.example.app",
+            instrumentationPackage = "com.example.app.test",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
             allPools = pools,
             retryQuota = 2,
-            testTimeoutMillis = 1000
+            testTimeoutMillis = 1000,
+            buildDir = buildDir,
+            taskName = taskName
         ).orNull()
 
         actual shouldEqual mapOf(
@@ -219,12 +235,15 @@ class TestDistributionTest {
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mockk(relaxed = true),
-            instrumentationPackage = "instrumentationPackage",
+            testedApplicationPackage = "com.example.app",
+            instrumentationPackage = "com.example.app.test",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
             allPools = pools,
             retryQuota = 2,
-            testTimeoutMillis = 1000
+            testTimeoutMillis = 1000,
+            buildDir = buildDir,
+            taskName = taskName
         ).orNull()
 
         actual shouldEqual mapOf(
@@ -261,12 +280,15 @@ class TestDistributionTest {
         runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mockk(relaxed = true),
-            instrumentationPackage = "instrumentationPackage",
+            testedApplicationPackage = "com.example.app",
+            instrumentationPackage = "com.example.app.test",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
             allPools = pools,
             retryQuota = 1,
-            testTimeoutMillis = 1000
+            testTimeoutMillis = 1000,
+            buildDir = buildDir,
+            taskName = taskName
         )
 
         verify(exactly = 1) { device.executeShellCommand(match { it.contains("A#methodOne") }, any(), any(), any()) }
@@ -291,12 +313,15 @@ class TestDistributionTest {
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mockk(relaxed = true),
-            instrumentationPackage = "instrumentationPackage",
+            testedApplicationPackage = "com.example.app",
+            instrumentationPackage = "com.example.app.test",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
             allPools = pools,
             retryQuota = 1,
-            testTimeoutMillis = 1000
+            testTimeoutMillis = 1000,
+            buildDir = buildDir,
+            taskName = taskName
         ).orNull()
 
         actual shouldEqual mapOf(
@@ -321,12 +346,15 @@ class TestDistributionTest {
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mockk(relaxed = true),
-            instrumentationPackage = "instrumentationPackage",
+            testedApplicationPackage = "com.example.app",
+            instrumentationPackage = "com.example.app.test",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
             allPools = pools,
             retryQuota = 1,
-            testTimeoutMillis = 1000
+            testTimeoutMillis = 1000,
+            buildDir = buildDir,
+            taskName = taskName
         ).orNull()
 
         actual shouldEqual mapOf(
@@ -356,12 +384,15 @@ class TestDistributionTest {
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mockk(relaxed = true),
-            instrumentationPackage = "instrumentationPackage",
+            testedApplicationPackage = "com.example.app",
+            instrumentationPackage = "com.example.app.test",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
             allPools = pools,
             retryQuota = 3,
-            testTimeoutMillis = 1000
+            testTimeoutMillis = 1000,
+            buildDir = buildDir,
+            taskName = taskName
         ).orNull()
 
         actual shouldEqual mapOf(
@@ -392,12 +423,15 @@ class TestDistributionTest {
         val actual = runAllTests(
             dispatcher = Dispatchers.IO,
             logger = mockk(relaxed = true),
-            instrumentationPackage = "instrumentationPackage",
+            testedApplicationPackage = "com.example.app",
+            instrumentationPackage = "com.example.app.test",
             instrumentationRunnerOptions = anyInstrumentationRunnerOptions(),
             allTestCases = testSuite,
             allPools = pools,
             retryQuota = 1,
-            testTimeoutMillis = 1000
+            testTimeoutMillis = 1000,
+            buildDir = buildDir,
+            taskName = taskName
         ).orNull()
 
         actual shouldEqual mapOf(

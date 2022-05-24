@@ -55,6 +55,18 @@ internal fun Device.executeShellWithTimeout(timeoutMillis: Long, command: String
     }
 }
 
+internal fun Device.executeShellWithTimeoutBinaryOutput(timeoutMillis: Long, command: String): Either<Throwable, ByteArray> = Either.catch {
+    ByteArrayShellOutputReceiver()
+        .also { executeShellCommand(command, it, timeoutMillis, TimeUnit.MILLISECONDS) }
+        .output
+}.mapLeft {
+    when (it) {
+        is ShellCommandUnresponsiveException,
+        is TimeoutException -> AdbTimeoutException(it)
+        else -> it
+    }
+}
+
 internal fun Device.isTablet(tabletShortestWidthDp: Int?): Either<Throwable, Boolean> = when (tabletShortestWidthDp) {
     null -> executeShellWithTimeout(20_000, "getprop ro.build.characteristics").map { it.contains("tablet") }
     else ->
@@ -197,3 +209,15 @@ private fun Either<Throwable, Unit>.ignoreErrorIfPossible(
     },
     ifRight = { it.right() }
 )
+
+/**
+ * Get the current user id.
+ *
+ * Don't confuse the user id with the app's UID.
+ * The default user id on standard Android is "0". In contrast, Android Automotive is a multi-user environment
+ * where the default user is "10", so we cannot just stick to "0" as the default.
+ *
+ * The current user is required so that coverage files are stored under the correct user.
+ */
+internal fun Device.getCurrentUserId(): Either<Throwable, String> =
+    executeShellWithTimeout(20_000L, "am get-current-user")

@@ -2,6 +2,7 @@ package com.banno.gordon
 
 import kotlinx.html.* // ktlint-disable no-wildcard-imports
 import kotlinx.html.stream.appendHTML
+import org.gradle.api.logging.Logger
 
 internal sealed class TestResult {
     data class Passed(val duration: Float?) : TestResult()
@@ -58,7 +59,7 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.summary(): String {
     ).joinToString("\n")
 }
 
-internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
+internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports(logger: Logger) =
     flatMap { (poolName, results) ->
         results.map { (testCase, result) ->
             val fileContent =
@@ -88,8 +89,11 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
                     }
                 }
 
+            val sanitizedPoolName = poolName.sanitizeFileNameForWindows()
+            val reportFileName = "$sanitizedPoolName-${testCase.fullyQualifiedClassName}.${testCase.methodName}.xml"
+            logger.info("Creating report file: $reportFileName")
             ReportFile(
-                "$poolName-${testCase.fullyQualifiedClassName}.${testCase.methodName}.xml",
+                reportFileName,
                 fileContent
             )
         }

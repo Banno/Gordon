@@ -158,7 +158,7 @@ internal abstract class GordonTestTask @Inject constructor(
             originalPools.validateDevicePools().bind()
 
             val applicationAab = applicationAab.get().asFile.takeUnless { it == PLACEHOLDER_APPLICATION_AAB }
-            val applicationPackage = applicationPackage.get().takeUnless { it == PLACEHOLDER_APPLICATION_PACKAGE }
+            val applicationPackage = getApplicationPackage()
             val onDemandDynamicModuleName = dynamicFeatureModuleName.get().takeUnless { it == PLACEHOLDER_DYNAMIC_MODULE_NAME }
                 .takeIf { dynamicFeatureModuleManifest.get().asFile.readText().contains("dist:on-demand") }
 
@@ -187,18 +187,22 @@ internal abstract class GordonTestTask @Inject constructor(
             val pools = originalPools.filterProblematicDevices(problematicDevices)
             pools.validateDevicePools().bind()
 
+            val testedApplicationPackage = getTestedApplicationPackage()
             val testResults = runAllTests(
                 dispatcher = Dispatchers.Default,
                 logger = logger,
+                testedApplicationPackage = testedApplicationPackage,
                 instrumentationPackage = instrumentationPackage.get(),
                 instrumentationRunnerOptions = instrumentationRunnerOptions.get(),
                 allTestCases = testCases,
                 allPools = pools,
                 retryQuota = retryQuota.get(),
-                testTimeoutMillis = testTimeoutMillis.get()
+                testTimeoutMillis = testTimeoutMillis.get(),
+                buildDir = project.buildDir,
+                taskName = taskIdentity.name
             ).bind()
 
-            testResults.junitReports().write(testResultsDirectory.get().asFile).bind()
+            testResults.junitReports(logger).write(testResultsDirectory.get().asFile).bind()
 
             val htmlReportPath = testResults.htmlReport().write(reportDirectory.get().asFile).bind()
 
@@ -224,6 +228,26 @@ internal abstract class GordonTestTask @Inject constructor(
                 RuntimeException("Test run failed. See the report at: file://$htmlReportPath").left().bind<Unit>()
             }
         }
+    }
+
+    private fun getApplicationPackage(): String? {
+        return applicationPackage.get().takeUnless { it == PLACEHOLDER_APPLICATION_PACKAGE }
+    }
+
+    /**
+     * Returns either the application package or the instrumentation package depending on if the target is an app or a library.
+     *
+     * Background:
+     * When apps get tested, two APKs get installed (the app APK and the test APK). That means
+     * applicationPackage is com.example.app
+     * instrumentationPackage is com.example.app.test
+     *
+     * When libraries get tested there's no applicationPackage (so it is null), but only the instrumentationPackage.
+     * However, it doesn't seem to be possible to only use the instrumentationPackage for both apps and libraries,
+     * because app's cannot store coverage files in the instrumentationPackage, but only in their own package.
+     */
+    private fun getTestedApplicationPackage(): String {
+        return getApplicationPackage() ?: instrumentationPackage.get()
     }
 }
 

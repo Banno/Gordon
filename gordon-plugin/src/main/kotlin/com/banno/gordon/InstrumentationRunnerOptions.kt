@@ -8,3 +8,6 @@ internal data class InstrumentationRunnerOptions(
     val testInstrumentationRunnerArguments: Map<String, String>,
     val animationsDisabled: Boolean
 ) : java.io.Serializable
+
+internal fun InstrumentationRunnerOptions.isCoverageEnabled(): Boolean =
+    testInstrumentationRunnerArguments["coverage"] == "true"

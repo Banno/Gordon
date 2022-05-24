@@ -17,17 +17,21 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
 import org.gradle.api.logging.Logger
+import java.io.File
 import kotlin.coroutines.CoroutineContext
 
 internal fun runAllTests(
     dispatcher: CoroutineDispatcher,
     logger: Logger,
+    testedApplicationPackage: String,
     instrumentationPackage: String,
     instrumentationRunnerOptions: InstrumentationRunnerOptions,
     allTestCases: List<TestCase>,
     allPools: List<DevicePool>,
     retryQuota: Int,
-    testTimeoutMillis: Long
+    testTimeoutMillis: Long,
+    buildDir: File,
+    taskName: String
 ): Either<Throwable, Map<PoolName, Map<TestCase, TestResult>>> = Either.catch {
     runBlocking {
         allPools.map { pool ->
@@ -40,6 +44,7 @@ internal fun runAllTests(
                 testResults += runTestsInPool(
                     dispatcher = dispatcher,
                     logger = logger,
+                    testedApplicationPackage = testedApplicationPackage,
                     instrumentationPackage = instrumentationPackage,
                     instrumentationRunnerOptions = instrumentationRunnerOptions,
                     testTimeoutMillis = testTimeoutMillis,
@@ -49,7 +54,9 @@ internal fun runAllTests(
                         deviceSerials,
                         allTestCases.associateWith { TestResult.NotRun }
                     ),
-                    totalTests = allTestCases.size
+                    totalTests = allTestCases.size,
+                    buildDir = buildDir,
+                    taskName = taskName
                 ).awaitAll()
                     .fold(emptyMap()) { accumulated, item -> accumulated + item }
 
@@ -59,6 +66,7 @@ internal fun runAllTests(
                     testResults += runTestsInPool(
                         dispatcher = dispatcher,
                         logger = logger,
+                        testedApplicationPackage = testedApplicationPackage,
                         instrumentationPackage = instrumentationPackage,
                         instrumentationRunnerOptions = instrumentationRunnerOptions,
                         testTimeoutMillis = testTimeoutMillis,
@@ -67,7 +75,9 @@ internal fun runAllTests(
                             dispatcher,
                             deviceSerials,
                             testsThatDidNotRun
-                        )
+                        ),
+                        buildDir = buildDir,
+                        taskName = taskName
                     ).awaitAll()
                         .fold(emptyMap()) { accumulated, item -> accumulated + item }
                 }
@@ -78,6 +88,7 @@ internal fun runAllTests(
                     testResults += runTestsInPool(
                         dispatcher = dispatcher,
                         logger = logger,
+                        testedApplicationPackage = testedApplicationPackage,
                         instrumentationPackage = instrumentationPackage,
                         instrumentationRunnerOptions = instrumentationRunnerOptions,
                         testTimeoutMillis = testTimeoutMillis,
@@ -86,7 +97,9 @@ internal fun runAllTests(
                             dispatcher,
                             deviceSerials,
                             testsThatFailed
-                        )
+                        ),
+                        buildDir = buildDir,
+                        taskName = taskName
                     ).awaitAll()
                         .fold(emptyMap()) { accumulated, item ->
                             val hydratedResults = item.mapValues { (testCase, result) ->
@@ -129,12 +142,15 @@ internal fun runAllTests(
 private fun CoroutineScope.runTestsInPool(
     dispatcher: CoroutineDispatcher,
     logger: Logger,
+    testedApplicationPackage: String,
     instrumentationPackage: String,
     instrumentationRunnerOptions: InstrumentationRunnerOptions,
     testTimeoutMillis: Long,
     devices: List<Device>,
     testDistributor: TestDistributor,
-    totalTests: Int? = null
+    totalTests: Int? = null,
+    buildDir: File,
+    taskName: String
 ): List<Deferred<Map<TestCase, TestResult>>> {
     var index = 0
     return devices.map { device ->
@@ -151,12 +167,15 @@ private fun CoroutineScope.runTestsInPool(
                     } else {
                         test to runTest(
                             logger = logger,
+                            testedApplicationPackage = testedApplicationPackage,
                             instrumentationPackage = instrumentationPackage,
                             instrumentationRunnerOptions = instrumentationRunnerOptions,
                             testTimeoutMillis = testTimeoutMillis,
                             test = test,
                             device = device,
-                            progress = progress
+                            progress = progress,
+                            buildDir = buildDir,
+                            taskName = taskName
                         )
                     }
                 }
