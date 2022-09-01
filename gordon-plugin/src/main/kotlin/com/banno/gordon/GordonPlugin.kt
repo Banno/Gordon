@@ -30,12 +30,13 @@ class GordonPlugin : Plugin<Project> {
 
         fun registerGordonTask(
             androidTestVariant: AndroidTest,
+            testBuildType: String,
             configuration: (GordonTestTask) -> Unit
         ) {
             val variantTaskName = androidTestVariant.name
                 .capitalize(Locale.ROOT)
                 .replace(Regex("AndroidTest$"), "")
-                .replace(Regex("Debug$"), "")
+                .replace(Regex("${testBuildType.capitalize(Locale.ROOT)}$"), "")
 
             project.tasks.register<GordonTestTask>("gordon$variantTaskName") {
                 group = VERIFICATION_GROUP
@@ -102,7 +103,7 @@ class GordonPlugin : Plugin<Project> {
         when (androidPlugin) {
             is AndroidPlugin.App -> androidPlugin.componentsExtension.onVariants { applicationVariant ->
                 applicationVariant.androidTest?.let { androidTestVariant ->
-                    registerGordonTask(androidTestVariant) { gordonTask ->
+                    registerGordonTask(androidTestVariant, testedExtension.testBuildType) { gordonTask ->
                         val testedVariant = testedExtension.testVariants.single { it.name == androidTestVariant.name }.testedVariant as ApkVariant
 
                         configureGordonTask(
@@ -121,7 +122,7 @@ class GordonPlugin : Plugin<Project> {
             }
             is AndroidPlugin.DynamicFeature -> androidPlugin.componentsExtension.onVariants { dynamicFeatureVariant ->
                 dynamicFeatureVariant.androidTest?.let { androidTestVariant ->
-                    registerGordonTask(androidTestVariant) { gordonTask ->
+                    registerGordonTask(androidTestVariant, testedExtension.testBuildType) { gordonTask ->
                         val testedVariant = testedExtension.testVariants.single { it.name == androidTestVariant.name }.testedVariant as ApkVariant
 
                         val (appProject, appVariant) = appDependencyOfFeature(project, testedVariant)
@@ -145,7 +146,7 @@ class GordonPlugin : Plugin<Project> {
             }
             is AndroidPlugin.Library -> androidPlugin.componentsExtension.onVariants { libraryVariant ->
                 libraryVariant.androidTest?.let { androidTestVariant ->
-                    registerGordonTask(androidTestVariant) { gordonTask ->
+                    registerGordonTask(androidTestVariant, testedExtension.testBuildType) { gordonTask ->
                         val testedVariant = testedExtension.testVariants.single { it.name == androidTestVariant.name }.testedVariant
 
                         configureGordonTask(
