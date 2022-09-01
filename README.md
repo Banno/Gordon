@@ -165,16 +165,14 @@ In this example, the AndroidX `AndroidJUnitRunner` will be used, animations will
 ## Running
 
 #### Tasks
-Gordon registers a Gradle task for each tested variant, stripping `Debug` from the task name because it's redundant.
+Gordon registers a Gradle task for each tested variant, stripping `testBuildType` (normally `Debug`) from the task name because it's redundant.
 
 For example, if you have no flavors defined, the following task is registered:
 - `gordon` - the equivalent of `connectedDebugAndroidTest`
 
-If you have a `mode` dimension with `demo` and `full` flavors, plus a `staging` build type in addition to the standard `debug` and `release` types, the following tasks are registered:
-- `gordonDemo` - the equivalent of `connectedDemoDebugAndroidTest`
-- `gordonFull` - the equivalent of `connectedFullDebugAndroidTest`
-- `gordonDemoStaging` - the equivalent of `connectedDemoStagingAndroidTest`
-- `gordonFullStaging` - the equivalent of `connectedFullStagingAndroidTest`
+If you have a `mode` dimension with `demo` and `full` flavors, plus a `staging` build type in addition to the standard `debug` and `release` types, and you set your `testBuildType` to `staging`, the following tasks are registered:
+- `gordonDemo` - the equivalent of `connectedDemoStagingAndroidTest`
+- `gordonFull` - the equivalent of `connectedFullStagingAndroidTest`
 
 #### Filtering
 There is a `--tests` commandline option that overrides the `testFilter` set in the `gordon` extension if both are specified.
