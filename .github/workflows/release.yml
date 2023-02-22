@@ -57,7 +57,7 @@ jobs:
         version-type: PATCH
 
     - name: Bump Version
-      uses: christian-draeger/write-properties@1.1.0
+      uses: christian-draeger/write-properties@1.0.1
       with:
         path: gordon-plugin/gradle.properties
         property: version
