@@ -15,6 +15,7 @@ jobs:
     steps:
     - uses: actions/setup-java@v3
       with:
+        distribution: 'zulu'
         java-version: 11
 
     - uses: actions/checkout@v3
