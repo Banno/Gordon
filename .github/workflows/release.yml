@@ -1,11 +1,11 @@
-name: Draft Release
+name: Publish Release
 
 on:
   workflow_dispatch:
 
 jobs:
   release:
-    name: Draft Release
+    name: Publish Release
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -28,6 +28,16 @@ jobs:
         tag: ${{ steps.current_version.outputs.value }}
         message: ${{ steps.current_version.outputs.value }}
 
+    - name: Create Release
+      uses: ncipollo/release-action@v1.12.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag: ${{ steps.current_version.outputs.value }}
+        generateReleaseNotes: true
+        draft: true
+        #makeLatest: true
+
     - id: next_version
       uses: jessicalostinspace/bump-semantic-version-action@v1.0.1
       with:
@@ -48,13 +58,3 @@ jobs:
       with:
         add: gordon-plugin/gradle.properties
         message: Bump version to ${{steps.next_version.outputs.bumped-semantic-version}}
-
-    - name: Draft Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.current_version.outputs.value }}
-        release_name: ${{ steps.current_version.outputs.value }}
-        body: <!-- Generate release notes by using the "Auto-generate release notes" button above -->
-        draft: true
