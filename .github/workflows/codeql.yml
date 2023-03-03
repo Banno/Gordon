@@ -28,9 +28,8 @@ jobs:
         languages: java
 
     - name: Build
-      uses: gradle/gradle-build-action@v2
-      with:
-        arguments: gordon-plugin:assemble
+      run: |
+        ./gradlew --no-daemon --no-build-cache clean gordon-plugin:assemble
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
