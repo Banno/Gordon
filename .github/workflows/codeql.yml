@@ -27,9 +27,8 @@ jobs:
       with:
         languages: java
 
-    - name: Build
-      run: |
-        ./gradlew --no-daemon --no-build-cache clean gordon-plugin:assemble
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
