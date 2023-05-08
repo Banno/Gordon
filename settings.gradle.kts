@@ -23,3 +23,12 @@ pluginManagement {
         id("com.gradle.plugin-publish") version gradlePluginPublishVersion
     }
 }
+
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+enableFeaturePreview("STABLE_CONFIGURATION_CACHE")

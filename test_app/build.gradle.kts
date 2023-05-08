@@ -6,15 +6,23 @@ plugins {
 }
 
 android {
-    compileSdk = 31
-    buildToolsVersion = "31.0.0"
+    namespace = "com.banno.android.gordontest"
+    compileSdk = 33
+    buildToolsVersion = "33.0.2"
     defaultConfig {
-        minSdk = 21
-        targetSdk = 31
+        minSdk = 26
+        targetSdk = 33
         applicationId = "com.banno.android.gordontest"
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    compileOptions {
+        sourceCompatibility("17")
+        targetCompatibility("17")
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
     val debugSigningConfig = signingConfigs.register("debugSigningConfig") {
         storeFile = file("debug.keystore")
@@ -28,11 +36,6 @@ android {
     dynamicFeatures.add(
         ":test_feature"
     )
-}
-
-repositories {
-    google()
-    mavenCentral()
 }
 
 dependencies {

@@ -1,15 +1,10 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     `kotlin-dsl`
-    `java-gradle-plugin`
     id("com.gradle.plugin-publish")
-    `maven-publish`
     kotlin("plugin.serialization")
     id("org.jmailen.kotlinter")
-}
-
-repositories {
-    google()
-    mavenCentral()
 }
 
 val androidGradlePluginVersion: String by project
@@ -18,11 +13,11 @@ val aapt2Version: String by project
 dependencies {
     implementation(gradleKotlinDsl())
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
 
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
-    implementation("com.android.tools.build:bundletool:1.8.2")
+    implementation("com.android.tools.build:bundletool:1.14.1")
     implementation("com.google.guava:guava:30.1.1-jre")
     implementation("org.smali:dexlib2:2.5.2")
 
@@ -30,6 +25,12 @@ dependencies {
 
     testImplementation(kotlin("test-junit"))
     testImplementation("io.mockk:mockk:1.12.0")
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }
 
 tasks.withType<Test>().configureEach {
@@ -49,20 +50,17 @@ mapOf(
 }
 
 gradlePlugin {
+    website.set("https://github.com/Banno/Gordon")
+    vcsUrl.set("https://github.com/Banno/Gordon")
     plugins {
         register("gordon") {
             id = "com.banno.gordon"
             implementationClass = "com.banno.gordon.GordonPlugin"
             displayName = "Gordon"
             description = "Android instrumentation test runner designed for speed, simplicity, and reliability"
+            tags.set(setOf("android", "instrumentation", "test", "runner"))
         }
     }
-}
-
-pluginBundle {
-    website = "https://github.com/Banno/Gordon"
-    vcsUrl = "https://github.com/Banno/Gordon"
-    tags = setOf("android", "instrumentation", "test", "runner")
 }
 
 extra["gradle.publish.key"] = System.getenv("GRADLE_PLUGIN_PUBLISH_KEY")

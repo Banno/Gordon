@@ -6,17 +6,20 @@ plugins {
 }
 
 android {
-    compileSdk = 31
-    buildToolsVersion = "31.0.0"
+    namespace = "com.banno.android.gordontest.feature"
+    compileSdk = 33
+    buildToolsVersion = "33.0.2"
     defaultConfig {
-        minSdk = 21
+        minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-}
-
-repositories {
-    google()
-    mavenCentral()
+    compileOptions {
+        sourceCompatibility("17")
+        targetCompatibility("17")
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
 }
 
 dependencies {
