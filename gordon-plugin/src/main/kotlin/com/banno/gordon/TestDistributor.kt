@@ -93,7 +93,7 @@ internal fun runAllTests(
                                 val existingResult = testResults[testCase]
 
                                 when (result) {
-                                    TestResult.NotRun -> if (existingResult is TestResult.Failed) existingResult else result
+                                    is TestResult.NotRun -> if (existingResult is TestResult.Failed) existingResult else result
 
                                     is TestResult.Failed -> {
                                         if (existingResult is TestResult.Failed) {
@@ -112,7 +112,7 @@ internal fun runAllTests(
                                     }
 
                                     is TestResult.Flaky,
-                                    TestResult.Ignored -> result
+                                    is TestResult.Ignored -> result
                                 }
                             }
 

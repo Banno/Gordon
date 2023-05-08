@@ -44,11 +44,11 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.summary(): String {
         "Test Results",
         "----------------",
         allResults.count { it is TestResult.Passed }.let { "Passed: $it" },
-        allResults.count { it == TestResult.Ignored }.takeIf { it > 0 }?.let { "Ignored: $it" },
+        allResults.count { it is TestResult.Ignored }.takeIf { it > 0 }?.let { "Ignored: $it" },
         allResults.count { it is TestResult.Flaky }.takeIf { it > 0 }?.let { "Flaky: $it" },
-        allResults.count { it == TestResult.NotRun }.takeIf { it > 0 }?.let { "Unable to run: $it" },
+        allResults.count { it is TestResult.NotRun }.takeIf { it > 0 }?.let { "Unable to run: $it" },
         allResults.count { it is TestResult.Failed }.takeIf { it > 0 }?.let { "Failed: $it" },
-        *mapValues { poolResults -> poolResults.value.filterValues { it == TestResult.NotRun || it is TestResult.Failed } }
+        *mapValues { poolResults -> poolResults.value.filterValues { it is TestResult.NotRun || it is TestResult.Failed } }
             .flatMap { (poolName, poolResults) ->
                 poolResults.map {
                     "$poolName: ${it.key.fullyQualifiedClassName.substringAfterLast('.')}.${it.key.methodName}"
@@ -65,8 +65,8 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
                 xmlDocument("testsuite") {
                     attribute("name", poolName)
                     attribute("tests", "1")
-                    attribute("skipped", if (result == TestResult.Ignored) "1" else "0")
-                    attribute("errors", if (result == TestResult.NotRun) "1" else "0")
+                    attribute("skipped", if (result is TestResult.Ignored) "1" else "0")
+                    attribute("errors", if (result is TestResult.NotRun) "1" else "0")
                     attribute("failures", if (result is TestResult.Failed) "1" else "0")
                     element("testcase") {
                         attribute("name", testCase.methodName)
@@ -74,8 +74,8 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
                         result.duration()?.let { attribute("time", it.toString()) }
 
                         when (result) {
-                            TestResult.Ignored -> element("skipped")
-                            TestResult.NotRun -> element("error", "Unable to run test")
+                            is TestResult.Ignored -> element("skipped")
+                            is TestResult.NotRun -> element("error", "Unable to run test")
                             is TestResult.Failed -> element(
                                 "failure",
                                 result.failures.concatFailures()
@@ -84,6 +84,7 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
                                 "system-err",
                                 result.failures.concatFailures()
                             )
+                            is TestResult.Passed -> Unit
                         }
                     }
                 }
@@ -104,8 +105,8 @@ private fun TestResult.duration(): Float? = when (this) {
     is TestResult.Passed -> duration
     is TestResult.Failed -> failures.mapNotNull { it.duration }.sum()
     is TestResult.Flaky -> failures.mapNotNull { it.duration }.sum() + (passedDuration ?: 0f)
-    TestResult.NotRun,
-    TestResult.Ignored -> null
+    is TestResult.NotRun,
+    is TestResult.Ignored -> null
 }
 
 internal fun Map<PoolName, Map<TestCase, TestResult>>.htmlReport(): ReportFile {

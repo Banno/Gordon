@@ -6,12 +6,19 @@ plugins {
 }
 
 android {
-    compileSdk = 31
-    buildToolsVersion = "31.0.0"
+    namespace = "com.banno.android.gordontest.library"
+    compileSdk = 33
+    buildToolsVersion = "33.0.2"
     defaultConfig {
-        minSdk = 21
-        targetSdk = 31
+        minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    compileOptions {
+        sourceCompatibility("17")
+        targetCompatibility("17")
+    }
+    kotlinOptions {
+        jvmTarget = "17"
     }
     flavorDimensions.add("foo")
     productFlavors {
@@ -23,11 +30,6 @@ android {
             testInstrumentationRunnerArguments["notAnnotation"] = "org.junit.Test"
         }
     }
-}
-
-repositories {
-    google()
-    mavenCentral()
 }
 
 dependencies {

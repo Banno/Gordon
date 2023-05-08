@@ -20,11 +20,11 @@ internal fun calculatePools(
     val allDevices = adb.getAllDevices().bind()
 
     when (strategy) {
-        PoolingStrategy.PoolPerDevice -> allDevices.map { DevicePool(it.serialNumber, listOf(it)) }
+        is PoolingStrategy.PoolPerDevice -> allDevices.map { DevicePool(it.serialNumber, listOf(it)) }
 
-        PoolingStrategy.SinglePool -> listOf(DevicePool("All-Devices", allDevices.toList()))
+        is PoolingStrategy.SinglePool -> listOf(DevicePool("All-Devices", allDevices.toList()))
 
-        PoolingStrategy.PhonesAndTablets -> {
+        is PoolingStrategy.PhonesAndTablets -> {
             val deviceAndIsTablet = allDevices.map { it to it.isTablet(tabletShortestWidthDp).bind() }
 
             listOf(
