@@ -3,6 +3,9 @@ name: Publish Release
 on:
   workflow_dispatch:
 
+env:
+  GITHUB_TOKEN: ${{ secrets.BANNO_AUTOBOT_GITHUB_TOKEN }}
+
 jobs:
   release:
     name: Publish Release
@@ -16,6 +19,8 @@ jobs:
         java-version: 17
 
     - uses: actions/checkout@v3
+      with:
+        token: ${{ env.GITHUB_TOKEN }}
 
     - id: current_version
       uses: christian-draeger/read-properties@1.1.1
