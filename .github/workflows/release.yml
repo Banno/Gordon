@@ -3,9 +3,6 @@ name: Publish Release
 on:
   workflow_dispatch:
 
-env:
-  GITHUB_TOKEN: ${{ secrets.BANNO_AUTOBOT_GITHUB_TOKEN }}
-
 jobs:
   release:
     name: Publish Release
@@ -19,8 +16,6 @@ jobs:
         java-version: 17
 
     - uses: actions/checkout@v3
-      with:
-        token: ${{ env.GITHUB_TOKEN }}
 
     - id: current_version
       uses: christian-draeger/read-properties@1.1.1
@@ -29,10 +24,11 @@ jobs:
         properties: version
 
     - name: Create Tag
-      uses: simpleactions/create-tag@v1.0.0
-      with:
-        tag: ${{ steps.current_version.outputs.version }}
-        message: ${{ steps.current_version.outputs.version }}
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git tag -a ${{ steps.current_version.outputs.version }} -m ${{ steps.current_version.outputs.version }}
+        git push origin ${{ steps.current_version.outputs.version }}
 
     - name: Create Release
       uses: ncipollo/release-action@v1.12.0
@@ -50,20 +46,22 @@ jobs:
         arguments: publishPlugins
 
     - id: next_version
-      uses: jessicalostinspace/bump-semantic-version-action@v1.0.1
+      uses: christian-draeger/increment-semantic-version@1.1.0
       with:
-        semantic-version: ${{ steps.current_version.outputs.version }}
-        version-type: PATCH
+        current-version: ${{ steps.current_version.outputs.version }}
+        version-fragment: bug
 
     - name: Bump Version
       uses: christian-draeger/write-properties@1.0.1
       with:
         path: gordon-plugin/gradle.properties
         property: version
-        value: ${{steps.next_version.outputs.bumped-semantic-version}}
+        value: ${{ steps.next_version.outputs.next-version }}
 
     - name: Commit Version Bump
-      uses: EndBug/add-and-commit@v9.1.1
-      with:
-        add: gordon-plugin/gradle.properties
-        message: Bump version to ${{steps.next_version.outputs.bumped-semantic-version}}
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add gordon-plugin/gradle.properties
+        git commit -m "Bump version to ${{ steps.next_version.outputs.next-version }}"
+        git push
