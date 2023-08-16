@@ -1,0 +1,33 @@
+name: CodeQL
+
+on:
+  schedule:
+    - cron: '24 7 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - uses: actions/checkout@v3
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          tools: latest
+          languages: java
+
+      - name: Build
+        run: ./gradlew --no-daemon --no-build-cache -Dkotlin.compiler.execution.strategy=in-process clean gordon-plugin:assemble
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:java"
