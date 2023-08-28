@@ -50,4 +50,4 @@ private val Annotatable.isIgnored
     get() = annotationNames.any { it == "org.junit.Ignore" }
 
 private val Annotatable.isTestMethod
-    get() = annotationNames.any { it == "org.junit.Test" }
+    get() = annotationNames.intersect(setOf("org.junit.Test", "org.junit.jupiter.api.Test")).isNotEmpty()
