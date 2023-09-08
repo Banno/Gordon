@@ -78,11 +78,11 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
                             is TestResult.NotRun -> element("error", "Unable to run test")
                             is TestResult.Failed -> element(
                                 "failure",
-                                result.failures.concatFailures()
+                                result.failures.concatFailures(poolName = poolName)
                             )
                             is TestResult.Flaky -> element(
                                 "system-err",
-                                result.failures.concatFailures()
+                                result.failures.concatFailures(poolName = poolName)
                             )
                             is TestResult.Passed -> Unit
                         }
@@ -96,10 +96,14 @@ internal fun Map<PoolName, Map<TestCase, TestResult>>.junitReports() =
         }
     }
 
-private fun List<Failure>.concatFailures(): String = mapIndexed { index, it ->
-    "\n\nFailure ${index + 1}\nDevice: ${it.deviceSerial}\n${it.shellOutput}"
-}
-    .joinToString(separator = "\n")
+fun List<Failure>.concatFailures(poolName: PoolName): String = withIndex().flatMap { (index, failure) ->
+    listOfNotNull(
+        "\n\nFailure ${index + 1}",
+        "Pool: $poolName".takeIf { poolName !in setOf("All-Devices", failure.deviceSerial) },
+        "Device: ${failure.deviceSerial}",
+        failure.shellOutput
+    )
+}.joinToString(separator = "\n")
 
 private fun TestResult.duration(): Float? = when (this) {
     is TestResult.Passed -> duration
