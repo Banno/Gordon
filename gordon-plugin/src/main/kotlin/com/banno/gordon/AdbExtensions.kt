@@ -82,6 +82,7 @@ internal fun Device.installApk(timeoutMillis: Long, apk: File): Either<Throwable
             Device.InstallOptions.builder()
                 .setTimeout(Duration.ofMillis(timeoutMillis))
                 .setAllowDowngrade(true)
+                .setGrantRuntimePermissions(true)
                 .setAllowReinstall(true)
                 .setAllowTestOnly(true)
                 .build()
@@ -97,6 +98,7 @@ internal fun Device.installApkSet(adb: AdbServer, timeoutMillis: Long, apkSet: F
                     "--timeout-millis=$timeoutMillis",
                     "--apks=${apkSet.path}",
                     "--allow-downgrade",
+                    "--grant-runtime-permissions",
                     "--allow-test-only",
                     "--device-id=$serialNumber",
                     onDemandDynamicModuleName?.let { "--modules=$it" }

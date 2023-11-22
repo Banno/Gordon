@@ -17,7 +17,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
 
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
-    implementation("com.android.tools.build:bundletool:1.14.1")
+    implementation("com.android.tools.build:bundletool:1.15.6")
     implementation("com.google.guava:guava:30.1.1-jre")
     implementation("org.smali:dexlib2:2.5.2")
 
