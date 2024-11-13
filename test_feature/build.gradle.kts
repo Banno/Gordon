@@ -7,18 +7,18 @@ plugins {
 
 android {
     namespace = "com.banno.android.gordontest.feature"
-    compileSdk = 33
-    buildToolsVersion = "33.0.2"
+    compileSdk = 35
+    buildToolsVersion = "35.0.0"
     defaultConfig {
         minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
-        sourceCompatibility("17")
-        targetCompatibility("17")
+        sourceCompatibility("21")
+        targetCompatibility("21")
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
 }
 
