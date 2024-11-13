@@ -12,12 +12,10 @@ class ParameterizedTest(private val parameter: Any) {
     companion object {
         @JvmStatic
         @Parameterized.Parameters
-        fun parameters(): Iterable<Array<Any>> {
-            return listOf(
-                arrayOf(1 as Any),
-                arrayOf("arg" as Any)
-            )
-        }
+        fun parameters(): Iterable<Array<Any>> = listOf(
+            arrayOf(1 as Any),
+            arrayOf("arg" as Any)
+        )
     }
 
     @Test fun parameterizedPass() = Assert.assertEquals(1, 1)

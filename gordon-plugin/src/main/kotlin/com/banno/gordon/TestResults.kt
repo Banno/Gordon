@@ -1,6 +1,8 @@
+@file:Suppress("ktlint:standard:no-wildcard-imports")
+
 package com.banno.gordon
 
-import kotlinx.html.* // ktlint-disable no-wildcard-imports
+import kotlinx.html.*
 import kotlinx.html.stream.appendHTML
 
 internal sealed class TestResult {
@@ -27,10 +29,9 @@ internal sealed class TestResult {
 
 data class Failure(val duration: Float?, val shellOutput: String, val deviceSerial: String)
 
-internal inline fun <reified T : TestResult> Map<TestCase, TestResult>.filterResultType(): Map<TestCase, T> {
-    return filterValues { it is T }
+internal inline fun <reified T : TestResult> Map<TestCase, TestResult>.filterResultType(): Map<TestCase, T> =
+    filterValues { it is T }
         .mapValues { it.value as T }
-}
 
 internal fun Map<PoolName, Map<TestCase, TestResult>>.getTestCasesByResult(predicate: (TestResult) -> Boolean): Map<PoolName, List<TestCase>> =
     mapValues {

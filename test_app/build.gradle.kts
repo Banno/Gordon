@@ -7,22 +7,22 @@ plugins {
 
 android {
     namespace = "com.banno.android.gordontest"
-    compileSdk = 33
-    buildToolsVersion = "33.0.2"
+    compileSdk = 35
+    buildToolsVersion = "35.0.0"
     defaultConfig {
         minSdk = 26
-        targetSdk = 33
+        targetSdk = 35
         applicationId = "com.banno.android.gordontest"
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
-        sourceCompatibility("17")
-        targetCompatibility("17")
+        sourceCompatibility("21")
+        targetCompatibility("21")
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
     val debugSigningConfig = signingConfigs.register("debugSigningConfig") {
         storeFile = file("debug.keystore")

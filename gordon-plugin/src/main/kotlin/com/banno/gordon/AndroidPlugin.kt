@@ -29,7 +29,7 @@ internal fun Project.androidPlugin(): AndroidPlugin<*, *>? =
     }
 
 internal sealed class AndroidPlugin<
-    out T : CommonExtension<*, *, *, *>,
+    out T : CommonExtension<*, *, *, *, *, *>,
     out U : AndroidComponentsExtension<out T, *, *>
     > {
 

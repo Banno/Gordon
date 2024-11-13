@@ -17,7 +17,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-html:0.7.3")
 
     implementation("com.android.tools.build:gradle:$androidGradlePluginVersion")
-    implementation("com.android.tools.build:bundletool:1.14.1")
+    implementation("com.android.tools.build:bundletool:1.17.2")
     implementation("com.google.guava:guava:30.1.1-jre")
     implementation("org.smali:dexlib2:2.5.2")
 
@@ -27,9 +27,14 @@ dependencies {
     testImplementation("io.mockk:mockk:1.12.0")
 }
 
+tasks.withType<JavaCompile>().configureEach {
+    sourceCompatibility = "21"
+    targetCompatibility = "21"
+}
+
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
 }
 
