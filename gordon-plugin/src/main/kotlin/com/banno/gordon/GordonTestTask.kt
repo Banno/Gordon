@@ -133,7 +133,7 @@ internal abstract class GordonTestTask @Inject constructor(
     }
 
     @TaskAction
-    private fun runTests() {
+    internal fun runTests() {
         runTestsCatching().fold({ throw it }, {})
     }
 

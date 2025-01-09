@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     `kotlin-dsl`
@@ -27,15 +27,16 @@ dependencies {
     testImplementation("io.mockk:mockk:1.12.0")
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+        freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
+    }
+}
+
 tasks.withType<JavaCompile>().configureEach {
     sourceCompatibility = "21"
     targetCompatibility = "21"
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        jvmTarget = "21"
-    }
 }
 
 tasks.withType<Test>().configureEach {

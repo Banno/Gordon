@@ -4,6 +4,7 @@ ktlint_standard_annotation = disabled
 ktlint_standard_class-signature = disabled
 ktlint_standard_comment-spacing = disabled
 ktlint_standard_condition-wrapping = disabled
+ktlint_standard_function-signature = disabled
 ktlint_standard_multiline-if-else = disabled
 ktlint_standard_spacing-between-declarations-with-annotations = disabled
 ktlint_standard_trailing-comma-on-call-site = disabled

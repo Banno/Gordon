@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.library")
     kotlin("android")
@@ -17,9 +19,6 @@ android {
         sourceCompatibility("21")
         targetCompatibility("21")
     }
-    kotlinOptions {
-        jvmTarget = "21"
-    }
     flavorDimensions.add("foo")
     productFlavors {
         register("bar") {
@@ -29,6 +28,13 @@ android {
             dimension = "foo"
             testInstrumentationRunnerArguments["notAnnotation"] = "org.junit.Test"
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+        freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
     }
 }
 
