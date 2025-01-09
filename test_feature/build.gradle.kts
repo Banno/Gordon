@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.dynamic-feature")
     kotlin("android")
@@ -17,8 +19,12 @@ android {
         sourceCompatibility("21")
         targetCompatibility("21")
     }
-    kotlinOptions {
-        jvmTarget = "21"
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_21
+        freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
     }
 }
 
