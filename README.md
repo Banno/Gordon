@@ -114,6 +114,9 @@ gordon {
 
     // Default is false - to ignore devices that failed during artifacts installation, may be useful with large number of devices and SinglePool strategy
     ignoreProblematicDevices.set(true)
+  
+    // Default is false - to leave apks installed after test run
+    leaveApksInstalledAfterRun.set(true)
 }
 ```
 

@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2019 - 2025 Jack Henry & Associates, Inc.
+ * Copyright (C) 2025 Bayerische Motorenwerke AG
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.banno.gordon
 
 import arrow.core.Either
@@ -71,6 +88,9 @@ internal abstract class GordonTestTask @Inject constructor(
 
     @get:Internal
     internal val ignoreProblematicDevices: Property<Boolean> = objects.property()
+
+    @get:Internal
+    internal val leaveApksInstalledAfterRun: Property<Boolean> = objects.property()
 
     @get:Internal
     internal val retryQuota: Property<Int> = objects.property()
@@ -202,12 +222,14 @@ internal abstract class GordonTestTask @Inject constructor(
 
             val htmlReportPath = testResults.htmlReport().write(reportDirectory.get().asFile).bind()
 
-            pools.flatMap { it.devices }.safeUninstall(
-                dispatcher = Dispatchers.Default,
-                timeoutMillis = installTimeoutMillis.get(),
-                applicationPackage = applicationPackage,
-                instrumentationPackage = instrumentationPackage.get()
-            )
+            if (!leaveApksInstalledAfterRun.get()) {
+                pools.flatMap { it.devices }.safeUninstall(
+                    dispatcher = Dispatchers.Default,
+                    timeoutMillis = installTimeoutMillis.get(),
+                    applicationPackage = applicationPackage,
+                    instrumentationPackage = instrumentationPackage.get()
+                )
+            }
 
             val testRunFailed =
                 testResults.getTestCasesByResult { it is TestResult.Failed || it is TestResult.NotRun }.isNotEmpty()
