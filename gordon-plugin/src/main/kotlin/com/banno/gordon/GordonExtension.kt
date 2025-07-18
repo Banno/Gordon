@@ -17,6 +17,7 @@ abstract class GordonExtension @Inject constructor(
     val testFilter: Property<String> = objects.property()
     val testInstrumentationRunner: Property<String> = objects.property()
     val ignoreProblematicDevices: Property<Boolean> = objects.property()
+    val leaveApksInstalledAfterRun: Property<Boolean> = objects.property()
 
     init {
         poolingStrategy.convention(PoolingStrategy.PoolPerDevice)
@@ -27,5 +28,6 @@ abstract class GordonExtension @Inject constructor(
         testFilter.convention("")
         testInstrumentationRunner.convention("")
         ignoreProblematicDevices.convention(false)
+        leaveApksInstalledAfterRun.convention(false)
     }
 }

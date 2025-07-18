@@ -73,6 +73,9 @@ internal abstract class GordonTestTask @Inject constructor(
     internal val ignoreProblematicDevices: Property<Boolean> = objects.property()
 
     @get:Internal
+    internal val leaveApksInstalledAfterRun: Property<Boolean> = objects.property()
+
+    @get:Internal
     internal val retryQuota: Property<Int> = objects.property()
 
     @get:Internal
@@ -202,12 +205,14 @@ internal abstract class GordonTestTask @Inject constructor(
 
             val htmlReportPath = testResults.htmlReport().write(reportDirectory.get().asFile).bind()
 
-            pools.flatMap { it.devices }.safeUninstall(
-                dispatcher = Dispatchers.Default,
-                timeoutMillis = installTimeoutMillis.get(),
-                applicationPackage = applicationPackage,
-                instrumentationPackage = instrumentationPackage.get()
-            )
+            if (!leaveApksInstalledAfterRun.get()) {
+                pools.flatMap { it.devices }.safeUninstall(
+                    dispatcher = Dispatchers.Default,
+                    timeoutMillis = installTimeoutMillis.get(),
+                    applicationPackage = applicationPackage,
+                    instrumentationPackage = instrumentationPackage.get()
+                )
+            }
 
             val testRunFailed =
                 testResults.getTestCasesByResult { it is TestResult.Failed || it is TestResult.NotRun }.isNotEmpty()

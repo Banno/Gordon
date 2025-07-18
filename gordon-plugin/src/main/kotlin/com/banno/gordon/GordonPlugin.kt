@@ -96,6 +96,7 @@ class GordonPlugin : Plugin<Project> {
             task.extensionTestFilter.set(gordonExtension.testFilter)
             task.extensionTestInstrumentationRunner.set(gordonExtension.testInstrumentationRunner)
             task.ignoreProblematicDevices.set(gordonExtension.ignoreProblematicDevices)
+            task.leaveApksInstalledAfterRun.set(gordonExtension.leaveApksInstalledAfterRun)
         }
 
         val testedExtension = project.extensions.getByType<TestedExtension>()
