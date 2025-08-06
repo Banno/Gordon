@@ -29,14 +29,14 @@ dependencies {
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_21
+        jvmTarget = JvmTarget.JVM_17
         freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
     }
 }
 
 tasks.withType<JavaCompile>().configureEach {
     sourceCompatibility = "21"
-    targetCompatibility = "21"
+    targetCompatibility = "17"
 }
 
 tasks.withType<Test>().configureEach {
