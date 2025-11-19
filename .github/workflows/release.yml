@@ -24,6 +24,10 @@ jobs:
       with:
         token: ${{ env.GITHUB_TOKEN }}
 
+    - id: previous_version
+      run: |
+        echo "previous-version=$(gh repo view --json latestRelease --jq '.latestRelease.tagName')" >> $GITHUB_OUTPUT
+
     - id: current_version
       uses: christian-draeger/read-properties@1.1.1
       with:
@@ -42,6 +46,7 @@ jobs:
       with:
         tag: ${{ steps.current_version.outputs.version }}
         generateReleaseNotes: true
+        generateReleaseNotesPreviousTag: ${{ steps.previous_version.outputs.previous-version }}
         makeLatest: true
 
     - name: Gradle Publish
