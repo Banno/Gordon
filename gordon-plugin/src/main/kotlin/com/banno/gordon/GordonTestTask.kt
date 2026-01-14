@@ -20,13 +20,13 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.kotlin.dsl.property
-import java.io.File
 import javax.inject.Inject
 
 @CacheableTask
@@ -40,10 +40,12 @@ internal abstract class GordonTestTask @Inject constructor(
     internal val instrumentationApkDir: DirectoryProperty = objects.directoryProperty()
 
     @get:InputFile
+    @get:Optional
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     internal val applicationAab: RegularFileProperty = objects.fileProperty()
 
     @get:InputFile
+    @get:Optional
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     internal val signingKeystoreFile: RegularFileProperty = objects.fileProperty()
 
@@ -51,13 +53,16 @@ internal abstract class GordonTestTask @Inject constructor(
     internal val signingConfigCredentials: Property<SigningConfigCredentials> = objects.property()
 
     @get:InputFile
+    @get:Optional
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     internal val dynamicFeatureModuleManifest: RegularFileProperty = objects.fileProperty()
 
     @get:Input
+    @get:Optional
     internal val dynamicFeatureModuleName: Property<String> = objects.property()
 
     @get:Input
+    @get:Optional
     internal val applicationPackage: Property<String> = objects.property()
 
     @get:Input
@@ -127,11 +132,11 @@ internal abstract class GordonTestTask @Inject constructor(
     val rootBuildGordonDirectory: Provider<Directory> = rootProjectBuildDirectory.dir("gordon")
 
     init {
-        applicationAab.convention { PLACEHOLDER_APPLICATION_AAB }
-        signingKeystoreFile.convention { PLACEHOLDER_SIGNING_KEYSTORE }
-        dynamicFeatureModuleManifest.convention { PLACEHOLDER_DYNAMIC_MODULE_MANIFEST }
-        dynamicFeatureModuleName.convention(PLACEHOLDER_DYNAMIC_MODULE_NAME)
-        applicationPackage.convention(PLACEHOLDER_APPLICATION_PACKAGE)
+        applicationAab.convention(null)
+        signingKeystoreFile.convention(null)
+        dynamicFeatureModuleManifest.convention(null)
+        dynamicFeatureModuleName.convention(null)
+        applicationPackage.convention(null)
         commandlineTestFilter.convention("")
     }
 
@@ -160,13 +165,13 @@ internal abstract class GordonTestTask @Inject constructor(
             testCases.validateTestCases().bind()
             originalPools.validateDevicePools().bind()
 
-            val applicationAab = applicationAab.get().asFile.takeUnless { it == PLACEHOLDER_APPLICATION_AAB }
-            val applicationPackage = applicationPackage.get().takeUnless { it == PLACEHOLDER_APPLICATION_PACKAGE }
-            val onDemandDynamicModuleName = dynamicFeatureModuleName.get().takeUnless { it == PLACEHOLDER_DYNAMIC_MODULE_NAME }
-                .takeIf { dynamicFeatureModuleManifest.get().asFile.readText().contains("dist:on-demand") }
+            val applicationAab = applicationAab.orNull?.asFile
+            val applicationPackage = applicationPackage.orNull
+            val onDemandDynamicModuleName = dynamicFeatureModuleName.orNull
+                ?.takeIf { dynamicFeatureModuleManifest.get().asFile.readText().contains("dist:on-demand") }
 
             val signingConfig = SigningConfig(
-                storeFile = signingKeystoreFile.get().asFile.takeUnless { it == PLACEHOLDER_SIGNING_KEYSTORE },
+                storeFile = signingKeystoreFile.orNull?.asFile,
                 storePassword = signingConfigCredentials.get().storePassword,
                 keyAlias = signingConfigCredentials.get().keyAlias,
                 keyPassword = signingConfigCredentials.get().keyPassword
@@ -264,9 +269,3 @@ internal fun TestCase.matchesFilter(filters: List<String>): Boolean {
             fullyQualifiedClassName.split('.').takeLast(filter.size) == filter
     }
 }
-
-private val PLACEHOLDER_APPLICATION_AAB = File.createTempFile("PLACEHOLDER_APPLICATION_AAB", null)
-private val PLACEHOLDER_SIGNING_KEYSTORE = File.createTempFile("PLACEHOLDER_SIGNING_KEYSTORE", null)
-private val PLACEHOLDER_DYNAMIC_MODULE_MANIFEST = File.createTempFile("PLACEHOLDER_DYNAMIC_MODULE_MANIFEST", null)
-private const val PLACEHOLDER_DYNAMIC_MODULE_NAME = "PLACEHOLDER_DYNAMIC_MODULE_NAME"
-private const val PLACEHOLDER_APPLICATION_PACKAGE = "PLACEHOLDER_APPLICATION_PACKAGE"
