@@ -31,7 +31,7 @@ jobs:
         echo "previous-version=$(gh repo view --json latestRelease --jq '.latestRelease.tagName')" >> $GITHUB_OUTPUT
 
     - id: current_version
-      uses: christian-draeger/read-properties@1.1.1
+      uses: christian-draeger/read-properties@908f99d3334be3802ec7cb528395a69d19914e7b
       with:
         path: gordon-plugin/gradle.properties
         properties: version
@@ -44,7 +44,7 @@ jobs:
         git push origin ${{ steps.current_version.outputs.version }}
 
     - name: Create Release
-      uses: ncipollo/release-action@v1.21.0
+      uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd
       with:
         tag: ${{ steps.current_version.outputs.version }}
         generateReleaseNotes: true
@@ -58,13 +58,13 @@ jobs:
       run: ./gradlew publishPlugins
 
     - id: next_version
-      uses: christian-draeger/increment-semantic-version@1.1.0
+      uses: christian-draeger/increment-semantic-version@4ac542a8ebf91f4edc224cbe3a19cc086826ae77
       with:
         current-version: ${{ steps.current_version.outputs.version }}
         version-fragment: bug
 
     - name: Bump Version
-      uses: christian-draeger/write-properties@1.0.1
+      uses: christian-draeger/write-properties@0c4fa75e27cccc65212581d3c73e2c14c1cd6ee1
       with:
         path: gordon-plugin/gradle.properties
         property: version
